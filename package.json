@@ -4,7 +4,7 @@
     "url": "https://github.com/polyipseity/PLACEHOLDER"
   },
   "dependencies": {
-    "@polyipseity/obsidian-plugin-library": "^1.36.1",
+    "@polyipseity/obsidian-plugin-library": "file:./vendor/obsidian-plugin-library",
     "i18next": "^26.0.8",
     "lodash-es": "^4.18.1",
     "monkey-around": "^3.0.0",
@@ -102,6 +102,7 @@
     "format:prettier": "prettier --cache --write \"**/*.{astro,cjs,css,csv,gql,graphql,hbs,html,js,jsx,json,json5,jsonc,jsonl,less,mjs,pcss,sass,scss,svelte,styl,ts,tsx,vue,xml,yaml,yml}\"",
     "obsidian:install": "bun run build && node scripts/obsidian-install.mjs",
     "obsidian:install:force": "bun run build:force && node scripts/obsidian-install.mjs",
+    "postinstall": "cd vendor/obsidian-plugin-library && bun install --frozen-lockfile --ignore-scripts && bun run build:force && cd ../..",
     "prepare": "bun x --package if-ci -- if-not-ci husky",
     "test": "bun run test:vitest",
     "test:vitest": "vitest run --coverage",
