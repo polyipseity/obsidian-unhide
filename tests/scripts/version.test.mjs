@@ -19,11 +19,11 @@ function writePackageAndVersions(project, packageContents = {}) {
   };
   fs.writeFileSync(
     path.join(project, "package.json"),
-    JSON.stringify(pkg, null, "\t"),
+    JSON.stringify(pkg, null, "  "),
   );
   fs.writeFileSync(
     path.join(project, "versions.json"),
-    JSON.stringify({}, null, "\t"),
+    JSON.stringify({}, null, "  "),
   );
   return pkg;
 }
@@ -131,11 +131,11 @@ describe("scripts/version.mjs", () => {
     };
     fs.writeFileSync(
       path.join(project, "package.json"),
-      JSON.stringify(pkg, null, "\t"),
+      JSON.stringify(pkg, null, "  "),
     );
     fs.writeFileSync(
       path.join(project, "versions.json"),
-      JSON.stringify({}, null, "\t"),
+      JSON.stringify({}, null, "  "),
     );
 
     vi.resetModules();
@@ -185,11 +185,11 @@ describe("scripts/version.mjs", () => {
     };
     fs.writeFileSync(
       path.join(project, "package.json"),
-      JSON.stringify(pkg, null, "\t"),
+      JSON.stringify(pkg, null, "  "),
     );
     fs.writeFileSync(
       path.join(project, "versions.json"),
-      JSON.stringify({}, null, "\t"),
+      JSON.stringify({}, null, "  "),
     );
 
     vi.resetModules();
