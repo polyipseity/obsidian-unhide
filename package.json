@@ -14,7 +14,7 @@
   },
   "description": "Show hidden files, like dotfiles, in Obsidian.",
   "devDependencies": {
-    "@j178/prek": "^0.4.1",
+    "@j178/prek": "^0.4.5",
     "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^20.5.2",
     "@commitlint/config-conventional": "^20.5.0",
