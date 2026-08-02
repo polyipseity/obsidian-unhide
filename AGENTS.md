@@ -253,6 +253,7 @@ const { loadDocumentations } = await import("../../src/documentations.js");
 - [.agents/instructions/localization.instructions.md](./.agents/instructions/localization.instructions.md) — Localization rules
 - [.agents/instructions/commit-message.instructions.md](./.agents/instructions/commit-message.instructions.md) — Commit message convention
 - [.agents/skills/plugin-testing/SKILL.md](./.agents/skills/plugin-testing/SKILL.md) — Plugin testing skill
+- [.agents/skills/code-review/SKILL.md](./.agents/skills/code-review/SKILL.md) — Code review skill
 - [.agents/instructions/agents.instructions.md](.agents/instructions/agents.instructions.md) — AI agent quick rules
 
 ---
@@ -271,7 +272,7 @@ This section contains concise, actionable rules and project-specific examples to
 - Formatting & linting: run `bun run format` and `bun run check` before committing. CI uses `bun install`.
 - Commit rules for agents: use Conventional Commits; run `bun run commitlint` locally when appropriate. Keep headers ≤100 chars and wrap bodies at 100 chars.
 - Localization rule for agents: when adding text keys, update `assets/locales/en/translation.json` first and add tests or localization notes. Follow `.agents/instructions/localization.instructions.md`.
-- PR checklist (brief): add/modify tests, run `bun x vitest run "tests/**/*.spec.{js,ts,mjs}"` locally for fast checks, run `bun run check`, add changeset when changing public API or version, and update `AGENTS.md` if you changed infra or agent-visible patterns.
+- PR checklist: run the code review skill (`.agents/skills/code-review/SKILL.md`) for structured change assessment.
 
 ### Copilot / Chat assistant guidelines (detailed)
 

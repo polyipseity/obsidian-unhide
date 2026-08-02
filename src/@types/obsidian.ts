@@ -1,9 +1,12 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 declare global {
   interface Element extends Private<$Element, PrivateKey> {}
   interface Window extends Private<$Window, PrivateKey> {}
 }
 declare module "obsidian" {
+  interface PluginManifest {
+    readonly fundingUrl?: string | Record<string, string>;
+  }
+
   interface DataAdapter extends Private<$DataAdapter, PrivateKey> {}
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
@@ -13,6 +16,8 @@ declare module "obsidian" {
   interface Vault extends Private<$Vault, PrivateKey> {}
   interface Workspace extends Private<$Workspace, PrivateKey> {}
 }
+import type { Private } from "@polyipseity/obsidian-plugin-library";
+import type { i18n } from "i18next";
 import type {
   FileExplorerView,
   FileItem,
@@ -23,8 +28,6 @@ import type {
   View,
   WorkspaceLeaf,
 } from "obsidian";
-import type { Private } from "@polyipseity/obsidian-plugin-library";
-import type { i18n } from "i18next";
 
 declare const PRIVATE_KEY: unique symbol;
 type PrivateKey = typeof PRIVATE_KEY;

@@ -1,22 +1,12 @@
 # Show Hidden Files for Obsidian [![release](https://img.shields.io/github/v/release/polyipseity/obsidian-show-hidden-files)][latest release] [![Obsidian downloads](https://img.shields.io/badge/dynamic/json?logo=Obsidian&color=%238b6cef&label=downloads&query=$["show-hidden-files"].downloads&url=https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/community-plugin-stats.json)][community plugin]
 
-[Buy Me a Coffee]: https://buymeacoffee.com/polyipseity
-[Buy Me a Coffee/embed]: https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=polyipseity&button_colour=40DCA5&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00
-[Obsidian]: https://obsidian.md/
-[changelog]: https://github.com/polyipseity/obsidian-show-hidden-files/blob/main/CHANGELOG.md
-[community plugin]: https://obsidian.md/plugins?id=show-hidden-files
-[latest release]: https://github.com/polyipseity/obsidian-show-hidden-files/releases/latest
-[repository]: https://github.com/polyipseity/obsidian-show-hidden-files
-[trailer]: https://raw.githubusercontent.com/polyipseity/obsidian-show-hidden-files/main/assets/trailer.png
-[related]: https://github.com/polyipseity/obsidian-monorepo
-
 Show hidden files, like dotfiles, in [Obsidian].
 
-[![Buy Me a Coffee/embed]][Buy Me a Coffee]
+[![Buy Me a Coffee/embed][Buy Me a Coffee/embed]][Buy Me a Coffee]
 
-__[Repository] · [Changelog] · [Community plugin] · [Related] · [Features](#features) · [Installation](#installation) · [Usage](#usage) · [Contributing](#contributing) · [Security](#security)__
+__[Repository][repository] · [Changelog][changelog] · [Community plugin][community plugin] · [Related][related] · [Features](#features) · [Installation](#installation) · [Usage](#usage) · [Contributing](#contributing) · [Security](#security)__
 
-![Trailer]
+![Trailer][trailer]
 
 For first time users, read the [installation](#installation) section first!
 
@@ -160,4 +150,15 @@ We hope that there will never be any security vulnerabilities, but unfortunately
 
 ### Reporting a vulnerability
 
-Please report a vulnerability by opening an new issue. We will get back to you as soon as possible.
+Please report a vulnerability by opening a [private vulnerability report][new security advisory]. We will get back to you as soon as possible.
+
+[Buy Me a Coffee]: https://buymeacoffee.com/polyipseity
+[Buy Me a Coffee/embed]: https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=polyipseity&button_colour=40DCA5&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00
+[changelog]: https://github.com/polyipseity/obsidian-show-hidden-files/blob/main/CHANGELOG.md
+[community plugin]: https://obsidian.md/plugins?id=show-hidden-files
+[latest release]: https://github.com/polyipseity/obsidian-show-hidden-files/releases/latest
+[new security advisory]: https://github.com/polyipseity/obsidian-plugin-template/security/advisories/new
+[Obsidian]: https://obsidian.md/
+[related]: https://github.com/polyipseity/obsidian-monorepo
+[repository]: https://github.com/polyipseity/obsidian-show-hidden-files
+[trailer]: https://raw.githubusercontent.com/polyipseity/obsidian-show-hidden-files/main/assets/trailer.png
