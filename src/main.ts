@@ -15,6 +15,7 @@ import { loadDocumentations } from "./documentations.js";
 import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
+import { loadShowHiddenFiles } from "./show-hidden-files.js";
 
 export class ShowHiddenFilesPlugin
   extends Plugin
@@ -82,6 +83,9 @@ export class ShowHiddenFilesPlugin
       await Promise.all([
         Promise.resolve().then(() => {
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
+        }),
+        Promise.resolve().then(() => {
+          loadShowHiddenFiles(this);
         }),
       ]);
     })().catch((error: unknown) => {
