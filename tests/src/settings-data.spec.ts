@@ -24,7 +24,7 @@ describe("src/settings-data.ts", () => {
       noticeTimeout: Settings.DEFAULT.noticeTimeout,
       openChangelogOnUpdate: Settings.DEFAULT.openChangelogOnUpdate,
       extra: "present",
-    };
+    } satisfies Partial<Settings> & { readonly extra: string } as unknown as Settings;
     // Use toRecord to assert type for test ergonomics
     const p = Settings.persistent(sample);
     expect(p).toHaveProperty("noticeTimeout");

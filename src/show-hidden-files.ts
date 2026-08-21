@@ -1,4 +1,3 @@
-import type { Command, MobileStat } from "obsidian";
 import {
   type PluginContext,
   Rules,
@@ -10,11 +9,13 @@ import {
   revealPrivate,
   revealPrivateAsync,
 } from "@polyipseity/obsidian-plugin-library";
-import { constant, escapeRegExp, noop } from "lodash-es";
-import type { MarkOptional } from "ts-essentials";
-import type { Settings } from "./settings-data.js";
-import type { ShowHiddenFilesPlugin } from "./main.js";
+import { noop } from "es-toolkit/function";
+import { escapeRegExp } from "es-toolkit/string";
 import { around } from "monkey-around";
+import type { Command, MobileStat } from "obsidian";
+import type { MarkOptional } from "ts-essentials";
+import type { ShowHiddenFilesPlugin } from "./main.js";
+import type { Settings } from "./settings-data.js";
 
 class ShowingRules extends SettingRules<Settings> {
   public constructor(context: ShowHiddenFilesPlugin) {
@@ -81,7 +82,7 @@ class ShowingRules extends SettingRules<Settings> {
             new RegExp(`^${escapeRegExp(vault0.configDir)}(?:/|$)`, "u").test(
               str,
             ),
-          constant(false),
+          () => false,
         )
           ? settings.value.showConfigurationFolder
           : super.test(str)))
@@ -143,7 +144,7 @@ function patchVault(
                     [adapter],
                     async (adapter2) =>
                       adapter2._exists(adapter0.getFullPath(path), path),
-                    constant(false),
+                    () => false,
                   )
                 ) {
                   hiddenPaths.add(path);
@@ -281,7 +282,6 @@ function patchFileExplorer(
                                 getText(proto2) {
                                   return function fn2(
                                     this: typeof innerEl,
-                                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                     ..._args: Parameters<typeof proto2>
                                   ): ReturnType<typeof proto2> {
                                     return uuid;
@@ -306,10 +306,10 @@ function patchFileExplorer(
               );
               return true;
             },
-            constant(false),
+            () => false,
           );
         },
-        constant(false),
+        () => false,
       );
     }
     if (!patch()) {

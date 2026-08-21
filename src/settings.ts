@@ -171,7 +171,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                 rulesList(context, settings.value.showingRules, {
                   callback: async (value): Promise<void> => {
                     await settings.mutate((settingsM) => {
-                      settingsM.showingRules = value;
+                      settingsM.showingRules = [...value];
                     });
                     this.postMutate();
                   },
