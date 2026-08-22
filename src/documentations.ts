@@ -1,4 +1,5 @@
 import {
+  $App,
   DocumentationMarkdownView,
   StorageSettingsManager,
   activeSelf,
@@ -7,10 +8,11 @@ import {
   deepFreeze,
   openExternal,
   printError,
-  revealPrivate,
+  revealPrivateFilter,
   toJSONOrString,
   typedKeys,
 } from "@polyipseity/obsidian-plugin-library";
+import { App, CommunityPluginsSettingTab, UnknownSettingTab } from "obsidian";
 import semverLt from "semver/functions/lt.js";
 import { MarkOptional } from "ts-essentials";
 import changelogMd from "../CHANGELOG.md";
@@ -37,7 +39,9 @@ export const DOCUMENTATIONS = deepFreeze({
       context,
       context: { app, manifest },
     } = view;
-    revealPrivate(
+    revealPrivateFilter<
+      [App, $App["setting"], CommunityPluginsSettingTab | UnknownSettingTab]
+    >()(
       context,
       [app],
       (app0) => {
@@ -79,14 +83,9 @@ export const DOCUMENTATIONS = deepFreeze({
             // caller-supplied detached element; the heart icon was then queried from
             // that subtree and clicked. This API was removed since at least Obsidian 1.12.7.
 
-            // eslint-disable-next-line eslint-comments/no-restricted-disable -- see below
-            // eslint-disable-next-line obsidianmd/prefer-create-el -- exercised by tests
             div = ownerDocument.createElement("div");
-            // eslint-disable-next-line eslint-comments/no-restricted-disable -- see below
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- needed for older Obsidian compat
+
             if (tab.renderInstalledPlugin) {
-              // eslint-disable-next-line eslint-comments/no-restricted-disable -- see below
-              // eslint-disable-next-line @typescript-eslint/no-deprecated -- needed for older Obsidian compat
               tab.renderInstalledPlugin(manifest, div);
             }
             element = div.querySelector(
