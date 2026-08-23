@@ -37,7 +37,7 @@ declare module "@polyipseity/obsidian-plugin-library" {
   }
 }
 
-interface $DataAdapter {
+export interface $DataAdapter {
   readonly _exists: (fullPath: string, path: string) => PromiseLike<boolean>;
   readonly fs: Filesystem;
   readonly getFullPath: (path: string) => string;
@@ -63,42 +63,42 @@ interface $DataAdapter {
   ) => PromiseLike<void>;
 }
 
-interface $Element {
+export interface $Element {
   readonly getText: () => string;
 }
 
-interface $FileExplorerView extends View {
+export interface $FileExplorerView extends View {
   readonly fileBeingRenamed: TFile | null;
   readonly fileItems: Readonly<Record<string, FileItem>>;
   readonly finishRename: () => PromiseLike<void>;
 }
 
-interface $FileItem {
+export interface $FileItem {
   readonly innerEl: HTMLElement;
 }
 
-interface $Filesystem {
+export interface $Filesystem {
   readonly stat?: (fullRealPath: string) => PromiseLike<MobileStat>;
 }
 
-interface $MobileStat extends Omit<Stat, "type"> {
+export interface $MobileStat extends Omit<Stat, "type"> {
   readonly type: "directory" | "file";
 }
 
-interface $TFile {
+export interface $TFile {
   readonly getNewPathAfterRename: (filename: string) => string;
 }
 
-interface $Vault {
+export interface $Vault {
   readonly configDir: string;
   readonly setConfigDir: (dirname: string) => void;
 }
 
-interface $Window {
+export interface $Window {
   readonly i18next: i18n;
 }
 
-interface $Workspace {
+export interface $Workspace {
   readonly getLeavesOfType: (
     viewType: "file-explorer",
   ) => readonly (WorkspaceLeaf & {
