@@ -1,5 +1,7 @@
 import {
   $App,
+  $CommunityPluginsSettingTab,
+  $UnknownSettingTab,
   DocumentationMarkdownView,
   StorageSettingsManager,
   activeSelf,
@@ -12,7 +14,6 @@ import {
   toJSONOrString,
   typedKeys,
 } from "@polyipseity/obsidian-plugin-library";
-import { App, CommunityPluginsSettingTab, UnknownSettingTab } from "obsidian";
 import semverLt from "semver/functions/lt.js";
 import { MarkOptional } from "ts-essentials";
 import changelogMd from "../CHANGELOG.md";
@@ -40,7 +41,8 @@ export const DOCUMENTATIONS = deepFreeze({
       context: { app, manifest },
     } = view;
     revealPrivateFilter<
-      [App, $App["setting"], CommunityPluginsSettingTab | UnknownSettingTab]
+      [$App, $CommunityPluginsSettingTab, $UnknownSettingTab],
+      [Document, Element, HTMLElement]
     >()(
       context,
       [app],
@@ -82,7 +84,7 @@ export const DOCUMENTATIONS = deepFreeze({
             // `renderInstalledPlugin`, which rendered each plugin's UI into a
             // caller-supplied detached element; the heart icon was then queried from
             // that subtree and clicked. This API was removed since at least Obsidian 1.12.7.
-    
+
             // eslint-disable-next-line eslint-comments/no-restricted-disable -- see below
             // eslint-disable-next-line obsidianmd/prefer-create-el -- exercised by tests
             div = ownerDocument.createElement("div");

@@ -366,6 +366,10 @@ For a short checklist and quick reference see `.github/instructions/copilot.inst
 
 See also a short FAQ for agents: `.github/instructions/agents-faq.instructions.md`.
 
+## 9. Vendor submodule
+
+The library `@polyipseity/obsidian-plugin-library` is vendored as a git **submodule** at `vendor/obsidian-plugin-library/` (see `.gitmodules`). A **sibling** checkout also exists at `../obsidian-plugin-library/` in the monorepo — same remote, different history. Do not confuse them. When asked to commit to "the vendor submodule", the target is `vendor/obsidian-plugin-library` only; verify with `git -C vendor/obsidian-plugin-library rev-parse --show-toplevel` (must end in `vendor/obsidian-plugin-library`) before any git write. See `.agents/instructions/submodule.instructions.md` for the full boundary rule.
+
 ---
 
 For unclear or incomplete sections, provide feedback to improve this guide for future agents.
