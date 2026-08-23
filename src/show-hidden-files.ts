@@ -6,14 +6,26 @@ import {
   anyToError,
   deepFreeze,
   printError,
-  revealPrivate,
-  revealPrivateAsync,
+  revealPrivateAsyncFilter,
+  revealPrivateFilter,
 } from "@polyipseity/obsidian-plugin-library";
 import { noop } from "es-toolkit/function";
 import { escapeRegExp } from "es-toolkit/string";
 import { around } from "monkey-around";
-import type { Command, MobileStat } from "obsidian";
+import type { Command, FileExplorerView } from "obsidian";
 import type { MarkOptional } from "ts-essentials";
+import type {
+  $DataAdapter,
+  $Element,
+  $FileExplorerView,
+  $FileItem,
+  $Filesystem,
+  $MobileStat,
+  $TFile,
+  $Vault,
+  $Window,
+  $Workspace,
+} from "./@types/obsidian.js";
 import type { ShowHiddenFilesPlugin } from "./main.js";
 import type { Settings } from "./settings-data.js";
 
@@ -38,11 +50,11 @@ class ShowingRules extends SettingRules<Settings> {
         async () => this.onChanged.emit(),
       ),
     );
-    revealPrivate(
+    revealPrivateFilter<[$Vault]>()(
       context,
       [vault],
       (vault0) => {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        // eslint-disable-next-line @typescript-eslint/no-this-alias -- to capture `ShowingRules` properly in the callback
         const this2 = this;
         context.register(
           around(vault0, {
@@ -75,7 +87,7 @@ class ShowingRules extends SettingRules<Settings> {
     return (
       settings.value.showHiddenFiles &&
       (str === void 0 ||
-        (revealPrivate(
+        (revealPrivateFilter<[$Vault]>()(
           context,
           [vault],
           (vault0) =>
@@ -124,7 +136,7 @@ function patchVault(
       ),
     ),
   );
-  revealPrivate(
+  revealPrivateFilter<[$DataAdapter]>()(
     context,
     [adapter],
     (adapter0) => {
@@ -139,7 +151,8 @@ function patchVault(
               if (isHiddenPath(path)) {
                 // Cannot use `exists` as it causes an await loop
                 if (
-                  await revealPrivateAsync(
+                  // Intentionally nested reveal private call because the function might not be invoked right now.
+                  await revealPrivateAsyncFilter<[$DataAdapter]>()(
                     context,
                     [adapter],
                     async (adapter2) =>
@@ -164,7 +177,7 @@ function patchVault(
     noop,
   );
   workspace.onLayoutReady(async () =>
-    revealPrivateAsync(
+    revealPrivateAsyncFilter<[$DataAdapter]>()(
       context,
       [adapter],
       async (adapter0) => adapter0.listRecursive(""),
@@ -178,7 +191,7 @@ function patchErrorMessage(
   filter: ShowingRules,
 ): void {
   // Affects: canvas: convert to file, renaming in editor
-  revealPrivate(
+  revealPrivateFilter<[$Window]>()(
     context,
     [self],
     (self0) => {
@@ -197,7 +210,7 @@ function patchErrorMessage(
                 }
               }
               return next.apply(this, args);
-            } as typeof next;
+            };
           },
         }),
       );
@@ -216,7 +229,7 @@ function patchFileExplorer(
   } = context;
   workspace.onLayoutReady(() => {
     function patch(): boolean {
-      return revealPrivate(
+      return revealPrivateFilter<[$FileExplorerView, $Workspace]>()(
         context,
         [workspace],
         (workspace0) => {
@@ -225,89 +238,81 @@ function patchFileExplorer(
             return false;
           }
           const { view } = leaf;
-          return revealPrivate(
-            context,
-            [view],
-            (view0) => {
-              context.register(
-                around(
-                  Object.getPrototypeOf(view0) as unknown as typeof view0,
-                  {
-                    finishRename(next) {
-                      return async function fn(
-                        this: typeof view,
-                        ...args: Parameters<typeof next>
-                      ): Promise<Awaited<ReturnType<typeof next>>> {
-                        if (!filter.test()) {
-                          return next.apply(this, args);
-                        }
-                        return revealPrivateAsync(
-                          context,
-                          [this],
-                          async (this0) => {
-                            const { fileBeingRenamed, fileItems } = this0;
-                            if (!fileBeingRenamed) {
-                              await next.apply(this, args);
-                              return;
-                            }
-                            const { path } = fileBeingRenamed,
-                              { [path]: fi } = fileItems;
-                            if (!fi) {
-                              throw new Error(path);
-                            }
-                            const { innerEl } = fi,
-                              filename = innerEl.getText();
-                            if (!isHiddenPathname(filename)) {
-                              await next.apply(this, args);
-                              return;
-                            }
-                            const uuid = self.crypto.randomUUID(),
-                              patch2 = around(fileBeingRenamed, {
-                                getNewPathAfterRename(proto2) {
-                                  return function fn2(
-                                    this: typeof fileBeingRenamed,
-                                    ...args2: Parameters<typeof proto2>
-                                  ): ReturnType<typeof proto2> {
-                                    const [filename2] = args2;
-                                    if (filename2 === uuid) {
-                                      args2[0] = filename;
-                                    }
-                                    return proto2.apply(this, args2);
-                                  };
-                                },
-                              });
-                            try {
-                              const patch3 = around(innerEl, {
-                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                                getText(proto2) {
-                                  return function fn2(
-                                    this: typeof innerEl,
-                                    ..._args: Parameters<typeof proto2>
-                                  ): ReturnType<typeof proto2> {
-                                    return uuid;
-                                  };
-                                },
-                              });
-                              try {
-                                await next.apply(this, args);
-                              } finally {
-                                patch3();
+          context.register(
+            around(Object.getPrototypeOf(view) as unknown as typeof view, {
+              finishRename(next) {
+                return async function fn(
+                  this: FileExplorerView,
+                  ...args: Parameters<typeof next>
+                ): Promise<Awaited<ReturnType<typeof next>>> {
+                  if (!filter.test()) {
+                    return next.apply(this, args);
+                  }
+                  // Intentionally nested reveal private call because the function might not be invoked right now.
+                  return revealPrivateAsyncFilter<
+                    [$Element, $FileExplorerView, $FileItem, $TFile]
+                  >()(
+                    context,
+                    [this],
+                    async (this0) => {
+                      const { fileBeingRenamed, fileItems } = this0;
+                      if (!fileBeingRenamed) {
+                        await next.apply(this, args);
+                        return;
+                      }
+                      const { path } = fileBeingRenamed,
+                        { [path]: fi } = fileItems;
+                      if (!fi) {
+                        throw new Error(path);
+                      }
+                      const { innerEl } = fi,
+                        filename = innerEl.getText();
+                      if (!isHiddenPathname(filename)) {
+                        await next.apply(this, args);
+                        return;
+                      }
+                      const uuid = self.crypto.randomUUID(),
+                        patch2 = around(fileBeingRenamed, {
+                          getNewPathAfterRename(proto2) {
+                            return function fn2(
+                              this: typeof fileBeingRenamed,
+                              ...args2: Parameters<typeof proto2>
+                            ): ReturnType<typeof proto2> {
+                              const [filename2] = args2;
+                              if (filename2 === uuid) {
+                                args2[0] = filename;
                               }
-                            } finally {
-                              patch2();
-                            }
+                              return proto2.apply(this, args2);
+                            };
                           },
-                          () => next.apply(this, args),
-                        );
-                      };
+                        });
+                      try {
+                        const patch3 = around(innerEl, {
+                          getText(_proto2) {
+                            return function fn2(
+                              this: typeof innerEl,
+                              ..._args: Parameters<typeof _proto2>
+                            ): ReturnType<typeof _proto2> {
+                              return uuid;
+                            };
+                          },
+                        });
+                        try {
+                          await next.apply(this, args);
+                        } finally {
+                          patch3();
+                        }
+                      } finally {
+                        patch2();
+                      }
                     },
-                  },
-                ),
-              );
-              return true;
-            },
-            () => false,
+                    () => next.apply(this, args),
+                  );
+                };
+              },
+            }),
           );
+          return true;
         },
         () => false,
       );
@@ -393,18 +398,18 @@ function addCommands(context: ShowHiddenFilesPlugin): void {
 }
 
 async function showFile(context: PluginContext, path: string): Promise<void> {
-  await revealPrivateAsync(
+  await revealPrivateAsyncFilter<[$DataAdapter, $Filesystem, $MobileStat]>()(
     context,
     [context.app.vault.adapter],
     async (adapter0) => {
       const realPath = adapter0.getRealPath(path),
         { fs } = adapter0;
-      if ("reconcileFileInternal" in adapter0) {
+      if (adapter0.reconcileFileInternal) {
         await adapter0.reconcileFileInternal(realPath, path);
-      } else if ("stat" in fs && "reconcileFileChanged" in adapter0) {
+      } else if (fs.stat && adapter0.reconcileFileChanged) {
         const fsStat = fs.stat.bind(fs),
           adapterRFC = adapter0.reconcileFileChanged.bind(adapter0),
-          stat = await (async (): Promise<MobileStat | null> => {
+          stat = await (async () => {
             try {
               return await fsStat(adapter0.getFullRealPath(realPath));
             } catch {
@@ -414,24 +419,17 @@ async function showFile(context: PluginContext, path: string): Promise<void> {
         if (!stat) {
           return;
         }
-        await revealPrivateAsync(
-          context,
-          [stat],
-          async (stat0) => {
-            const { type } = stat0;
-            switch (type) {
-              case "file":
-                adapterRFC(realPath, path, stat);
-                break;
-              case "directory":
-                await adapter0.reconcileFolderCreation(realPath, path);
-                break;
-              default:
-                throw new Error(type);
-            }
-          },
-          noop,
-        );
+        const { type } = stat;
+        switch (type) {
+          case "file":
+            adapterRFC(realPath, path, stat);
+            break;
+          case "directory":
+            await adapter0.reconcileFolderCreation(realPath, path);
+            break;
+          default:
+            throw new Error(type);
+        }
       } else {
         throw new Error();
       }
@@ -441,7 +439,7 @@ async function showFile(context: PluginContext, path: string): Promise<void> {
 }
 
 async function hideFile(context: PluginContext, path: string): Promise<void> {
-  await revealPrivateAsync(
+  await revealPrivateAsyncFilter<[$DataAdapter]>()(
     context,
     [context.app.vault.adapter],
     async (adapter0) =>
