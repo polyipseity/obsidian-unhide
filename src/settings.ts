@@ -8,11 +8,12 @@ import {
   registerSettingsCommands,
   resetButton,
   rulesList,
+  setSanitizedInnerHTML,
 } from "@polyipseity/obsidian-plugin-library";
-import { Settings } from "./settings-data.js";
-import type { ShowHiddenFilesPlugin } from "./main.js";
-import type { loadDocumentations } from "./documentations.js";
 import semverLt from "semver/functions/lt.js";
+import type { loadDocumentations } from "./documentations.js";
+import type { ShowHiddenFilesPlugin } from "./main.js";
+import { Settings } from "./settings-data.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
   public constructor(
@@ -91,8 +92,9 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
         .setDesc(
           createDocumentFragment(settingEl.ownerDocument, (frag) => {
             createChildElement(frag, "span", (ele) => {
-              ele.innerHTML = i18n.t(
-                "settings.show-hidden-files-description-HTML",
+              setSanitizedInnerHTML(
+                ele,
+                i18n.t("settings.show-hidden-files-description-HTML"),
               );
             });
           }),
