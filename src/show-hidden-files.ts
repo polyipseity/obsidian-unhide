@@ -44,11 +44,12 @@ import type { Settings } from "./settings-data.js";
  * would not refresh visibility until another setting mutated.
  *
  * Obsidian-version coupling: depends on the private `Vault.configDir` property and the
- * `Vault.setConfigDir` method. If Obsidian renames or removes `configDir`, or stops routing
- * config-dir changes through `setConfigDir`, the rule silently stops tracking the folder and
- * the `.obsidian` visibility toggle breaks. The private member is accessed through
- * `revealPrivateFilter`, so a type change surfaces as a compile error rather than a runtime
- * crash.
+ * `Vault.setConfigDir` method. Verified in 1.13.7: `setConfigDir(dir)` only assigns
+ * `this.configDir = dir` (falling back to the default when invalid) and has no other side effect.
+ * If Obsidian renames or removes `configDir`, or stops routing config-dir changes through
+ * `setConfigDir`, the rule silently stops tracking the folder and the `.obsidian` visibility
+ * toggle breaks. The private member is accessed through `revealPrivateFilter`, so a type change
+ * surfaces as a compile error rather than a runtime crash.
  *
  * Lifecycle: the `around` patch is registered through `context.register` inside the
  * `revealPrivateFilter` callback, so it is unloaded automatically with the plugin context.
@@ -84,6 +85,7 @@ class ShowingRules extends SettingRules<Settings> {
         context.register(
           around(vault0, {
             setConfigDir(next) {
+              // Verified 1.13.7 body: `this.configDir = dir` (no other side effect) — re-emit after it runs.
               return function fn(
                 this: typeof vault0,
                 ...args: Parameters<typeof next>
@@ -149,14 +151,16 @@ export function loadShowHiddenFiles(context: UnhidePlugin): void {
  *
  * Obsidian-version coupling: depends on the private `DataAdapter._exists` method and the
  * `DataAdapter.reconcileDeletion` method. The public `exists` is intentionally avoided because it
- * triggers an await loop; `_exists` is used instead. `reconcileDeletion(realPath, path, force?)`
- * defaults `force` to `true`, which performs the real removal; `force = false` instead defers and
- * re-adds the file. The plugin forwards only the two received args (`next.apply(this, args)`), so
- * `force` defaults to `true` and Obsidian performs the actual deletion — the plugin merely observes
- * it and re-shows the file if it still physically exists and passes `filter.test`. If Obsidian
- * renames or changes the signature of `_exists` or `reconcileDeletion`, hidden-path tracking breaks
- * and deleted hidden files may disappear from the explorer. Both private members are reached through
- * `revealPrivateFilter` / `revealPrivateAsyncFilter`, so type changes fail at compile time.
+ * triggers an await loop; `_exists` is used instead. Verified in 1.13.7: `reconcileDeletion`
+ * takes `(realPath, path)` and defaults its internal `force` to `true` (`void 0===n&&(n=!0)`),
+ * which performs the real removal; `force = false` instead defers via `setTimeout` + `reconcileFile`.
+ * The plugin forwards only the two received args (`next.apply(this, args)`), so `force` stays `true`
+ * and Obsidian performs the actual deletion — the plugin merely observes it and re-shows the file if
+ * it still physically exists and passes `filter.test`. No third argument is required at the patch
+ * site. If Obsidian renames or changes the signature of `_exists` or `reconcileDeletion`, hidden-path
+ * tracking breaks and deleted hidden files may disappear from the explorer. Both private members are
+ * reached through `revealPrivateFilter` / `revealPrivateAsyncFilter`, so type changes fail at compile
+ * time.
  *
  * Lifecycle: the `around` patch is registered through `context.register` inside the
  * `revealPrivateFilter` callback, so it is unloaded automatically with the plugin context. The
@@ -193,6 +197,7 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
       context.register(
         around(adapter0, {
           reconcileDeletion(next) {
+            // Verified 1.13.7 signature `(realPath, path)`; `force` defaults to `true` internally, so forwarding only the two received args keeps the real deletion.
             return async function fn(
               this: typeof adapter,
               ...args: Parameters<typeof next>
@@ -258,6 +263,7 @@ function patchErrorMessage(context: UnhidePlugin, filter: ShowingRules): void {
       context.register(
         around(i18next, {
           t(next) {
+            // Verified 1.13.7: key `plugins.file-explorer.msg-bad-dotfile` lives in the i18n bundle (`i18n/mapping.txt`), not `app.js`; returning "" lets canvas "convert to file" and editor rename proceed.
             return function fn(
               this: typeof i18next,
               ...args: Parameters<typeof next>
@@ -316,6 +322,7 @@ export function patchFileExplorer(
           // installs a throwing stub for any absent key, so pass exactly one key — the first that
           // exists on the prototype.
           const renamePrototype = Object.getPrototypeOf(view) as typeof view;
+          // Verified 1.13.7: `saveRename` is the live method on `FileExplorerView.prototype`; `acceptRename` moved to the property-rename view and `finishRename` was removed — so detect the single present method at runtime.
           const renameMethod: "saveRename" | "acceptRename" | "finishRename" =
             "saveRename" in renamePrototype
               ? "saveRename"
@@ -359,6 +366,7 @@ export function patchFileExplorer(
                         // Swap the rename target to a UUID so the real hidden filename is used; getNewPathAfterRename maps the UUID back to the hidden name.
                         patch2 = around(fileBeingRenamed, {
                           getNewPathAfterRename(proto2) {
+                            // Verified 1.13.7 body: strips control chars, trims, then joins under `parent.path` (or root) — we map the UUID placeholder back to the real dotted name.
                             return function fn2(
                               this: typeof fileBeingRenamed,
                               ...args2: Parameters<typeof proto2>
