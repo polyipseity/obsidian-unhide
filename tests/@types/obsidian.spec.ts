@@ -4,7 +4,6 @@ import type {
   $BakedHotkey,
   $Commands,
   $CommunityPluginsSettingTab,
-  $DataAdapter,
   $FileSystem,
   $HotkeyManager,
   $Keymap,
@@ -15,6 +14,7 @@ import type {
   $WorkspaceLeaf,
   $WorkspaceRibbon,
 } from "@polyipseity/obsidian-plugin-library";
+import type { $DataAdapter } from "../../src/@types/obsidian.js";
 
 describe("$ brand interface reachability from template", () => {
   it("resolves all vendor $ types in the template context", () => {
@@ -23,6 +23,12 @@ describe("$ brand interface reachability from template", () => {
     expectTypeOf<$Commands>().not.toBeAny();
     expectTypeOf<$CommunityPluginsSettingTab>().not.toBeAny();
     expectTypeOf<$DataAdapter>().not.toBeAny();
+    expectTypeOf<$DataAdapter["reconcileDeletion"]>().parameters.toEqualTypeOf<
+      [realPath: string, path: string, force?: boolean]
+    >();
+    expectTypeOf<$DataAdapter["reconcileDeletion"]>().returns.toEqualTypeOf<
+      PromiseLike<void>
+    >();
     expectTypeOf<$FileSystem>().not.toBeAny();
     expectTypeOf<$HotkeyManager>().not.toBeAny();
     expectTypeOf<$Keymap>().not.toBeAny();
