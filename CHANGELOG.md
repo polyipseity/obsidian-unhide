@@ -1,5 +1,24 @@
 # obsidian-unhide <!-- markdownlint-disable-file MD024 -->
 
+## 3.0.0
+
+### Major Changes
+
+- 40817f7: Rename the plugin id from `show-hidden-files` to `unhide` (repo renamed to
+  obsidian-unhide) to avoid a collision with an existing community plugin. The
+  display name is now "Unhide" and the description notes the former name
+  "Show Hidden Files". Breaking: existing installs and command hotkeys bound to
+  the old id will not carry over and must be re-bound.
+
+### Minor Changes
+
+- b2b2e38: Fix the hidden-file rename patch's file-explorer hook detection. The patch now
+  detects the rename method in order `saveRename` (Obsidian ≥1.13.7) → `acceptRename`
+  (≤1.12.7) → `finishRename` (ancient builds), so leading dots are preserved again
+  on Obsidian 1.12.7 and older. Previously the `finishRename` fallback never matched
+  real builds, leaving dot preservation broken and installing a throwing stub on the
+  prototype.
+
 ## 2.5.0
 
 ### Minor Changes
