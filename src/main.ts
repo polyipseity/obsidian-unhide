@@ -17,7 +17,7 @@ import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
 import { loadShowHiddenFiles } from "./show-hidden-files.js";
 
-export class ShowHiddenFilesPlugin
+export class UnhidePlugin
   extends Plugin
   implements PluginContext<Settings, LocalSettings>
 {
@@ -94,4 +94,4 @@ export class ShowHiddenFilesPlugin
   }
 }
 // Needed for loading
-export default ShowHiddenFilesPlugin;
+export default UnhidePlugin;

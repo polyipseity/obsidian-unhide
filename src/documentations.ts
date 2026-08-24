@@ -19,7 +19,7 @@ import { MarkOptional } from "ts-essentials";
 import changelogMd from "../CHANGELOG.md";
 import readmeMd from "../README.md";
 import { DOMClasses2 } from "./magic.js";
-import type { ShowHiddenFilesPlugin } from "./main.js";
+import type { UnhidePlugin } from "./main.js";
 
 export const DOCUMENTATIONS = deepFreeze({
   async changelog(
@@ -144,7 +144,7 @@ export interface DocumentationOpenOptions {
 
 class Loaded0 {
   public constructor(
-    public readonly context: ShowHiddenFilesPlugin,
+    public readonly context: UnhidePlugin,
     public readonly docMdView: DocumentationMarkdownView.Registered,
   ) {}
 
@@ -187,7 +187,7 @@ class Loaded0 {
   }
 }
 export function loadDocumentations(
-  context: ShowHiddenFilesPlugin,
+  context: UnhidePlugin,
   readme = false,
 ): loadDocumentations.Loaded {
   const {

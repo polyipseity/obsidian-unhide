@@ -26,11 +26,11 @@ import type {
   $Window,
   $Workspace,
 } from "./@types/obsidian.js";
-import type { ShowHiddenFilesPlugin } from "./main.js";
+import type { UnhidePlugin } from "./main.js";
 import type { Settings } from "./settings-data.js";
 
 class ShowingRules extends SettingRules<Settings> {
-  public constructor(context: ShowHiddenFilesPlugin) {
+  public constructor(context: UnhidePlugin) {
     super(context, (setting) => setting.showingRules, Rules.pathInterpreter);
     const {
       context: {
@@ -102,7 +102,7 @@ class ShowingRules extends SettingRules<Settings> {
   }
 }
 
-export function loadShowHiddenFiles(context: ShowHiddenFilesPlugin): void {
+export function loadShowHiddenFiles(context: UnhidePlugin): void {
   const filter = new ShowingRules(context);
   patchVault(context, filter);
   patchErrorMessage(context, filter);
@@ -110,10 +110,7 @@ export function loadShowHiddenFiles(context: ShowHiddenFilesPlugin): void {
   addCommands(context);
 }
 
-function patchVault(
-  context: ShowHiddenFilesPlugin,
-  filter: ShowingRules,
-): void {
+function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
   const {
       app: {
         vault: { adapter },
@@ -186,10 +183,7 @@ function patchVault(
   );
 }
 
-function patchErrorMessage(
-  context: ShowHiddenFilesPlugin,
-  filter: ShowingRules,
-): void {
+function patchErrorMessage(context: UnhidePlugin, filter: ShowingRules): void {
   // Affects: canvas: convert to file, renaming in editor
   revealPrivateFilter<[$Window]>()(
     context,
@@ -219,10 +213,7 @@ function patchErrorMessage(
   );
 }
 
-function patchFileExplorer(
-  context: ShowHiddenFilesPlugin,
-  filter: ShowingRules,
-): void {
+function patchFileExplorer(context: UnhidePlugin, filter: ShowingRules): void {
   // Affects: renaming in file explorer
   const {
     app: { workspace },
@@ -328,7 +319,7 @@ function patchFileExplorer(
   });
 }
 
-function addCommands(context: ShowHiddenFilesPlugin): void {
+function addCommands(context: UnhidePlugin): void {
   const {
     language: { value: i18n },
     settings,

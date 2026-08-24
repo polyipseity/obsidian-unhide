@@ -12,12 +12,12 @@ import {
 } from "@polyipseity/obsidian-plugin-library";
 import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
-import type { ShowHiddenFilesPlugin } from "./main.js";
+import type { UnhidePlugin } from "./main.js";
 import { Settings } from "./settings-data.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
   public constructor(
-    protected override readonly context: ShowHiddenFilesPlugin,
+    protected override readonly context: UnhidePlugin,
     protected readonly docs: loadDocumentations.Loaded,
   ) {
     super(context);
@@ -237,7 +237,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
 }
 
 export function loadSettings(
-  context: ShowHiddenFilesPlugin,
+  context: UnhidePlugin,
   docs: loadDocumentations.Loaded,
 ): void {
   context.addSettingTab(new SettingTab(context, docs));
