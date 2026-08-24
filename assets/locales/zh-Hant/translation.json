@@ -23,7 +23,7 @@
     "show": "顯示",
     "toggle": "切換"
   },
-  "name": "$t(generic.show)$t(generic.hidden-file)",
+  "name": "Unhide",
   "settings": {
     "documentation": "$t(generic.documentation)",
     "documentations": {

@@ -26,7 +26,7 @@
     "show_gerund": "affichage",
     "toggle": "afficher"
   },
-  "name": "$t(generic.show, capitalize) $t(generic.hidden-file_other, startCase)",
+  "name": "Unhide",
   "settings": {
     "documentation": "$t(generic.documentation, capitalize)",
     "documentations": {

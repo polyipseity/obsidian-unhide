@@ -18,9 +18,7 @@ describe("PluginLocales", () => {
 
     const translation = await enRes[PluginLocales.DEFAULT_NAMESPACE]();
     // The default translation here comes from the raw assets; assert it contains the expected tokens
-    expect(translation.name).toContain(
-      "$t(generic.show, capitalize) $t(generic.hidden-file_other, startCase)",
-    );
+    expect(translation.name).toBe("Unhide");
 
     const asset = await enRes.asset();
     expect(asset.settings.documentations["readme-icon"]).toBe(
