@@ -277,11 +277,13 @@ function patchErrorMessage(context: UnhidePlugin, filter: ShowingRules): void {
 /**
  * Preserve the leading dot when renaming hidden files in the file explorer.
  *
- * Target: the `finishRename` method on `FileExplorerView.prototype` (patched via `around(Object.getPrototypeOf(view), ...)`), reading the private `fileBeingRenamed`, `fileItems`, and `innerEl` members through `revealPrivateAsyncFilter`.
+ * Target: the file-explorer rename method on `FileExplorerView.prototype` (patched via `around(Object.getPrototypeOf(view), ...)`). Obsidian ≥1.13.7 exposes `saveRename`; older builds (including the plugin's `minAppVersion` 1.4.11) expose `finishRename`. The patch detects the existing method at runtime and wraps only that one, because `monkey-around` installs a throwing stub for any absent key.
  *
- * Purpose: Obsidian's rename strips the leading dot from hidden-file names. When the file being renamed is hidden, this patch swaps the displayed filename for a placeholder UUID during `finishRename`, then restores the real dotted name via `getNewPathAfterRename`, so the dot is kept.
+ * Purpose: Obsidian's rename strips the leading dot from hidden-file names. When the file being renamed is hidden, this patch swaps the displayed filename for a placeholder UUID during the rename method, then restores the real dotted name via `getNewPathAfterRename`, so the dot is kept.
  *
- * Obsidian-version coupling: depends on the `finishRename` prototype method and on the private `fileBeingRenamed`, `fileItems`, and `innerEl` members plus `getNewPathAfterRename` on the renamed file. Any rename of these symbols or a change to how the file explorer computes the new path breaks the dot preservation.
+ * Private typing: the patched rename method and the read private members (`fileBeingRenamed`, `fileItems`, `innerEl`) are declared on the `$FileExplorerView` interface in `src/@types/obsidian.ts` and merged into Obsidian's `FileExplorerView` through the `Private<$FileExplorerView, PrivateKey>` augmentation from `@polyipseity/obsidian-plugin-library`; at runtime they are reached through `revealPrivateAsyncFilter` / `revealPrivateFilter`. The nested patches wrap `getNewPathAfterRename` (declared on `$TFile`) and `innerEl.getText` (declared on `$Element` / `$FileItem.innerEl`).
+ *
+ * Obsidian-version coupling: depends on the rename method (`saveRename` or `finishRename`) and on the private `fileBeingRenamed`, `fileItems`, and `innerEl` members plus `getNewPathAfterRename` on the renamed file. Any rename of these symbols or a change to how the file explorer computes the new path breaks the dot preservation. Verified working across Obsidian 1.4.11 (old `finishRename`) through 1.13.7 (new `saveRename`).
  *
  * Lifecycle: lazily applied after layout is ready. If the `file-explorer` leaf is not present yet, the patch retries on every `workspace` `layout-change` event until it succeeds, then detaches that listener. The installed `around` patch and the retry listener are both registered on the plugin context for unload.
  */
@@ -297,14 +299,20 @@ function patchFileExplorer(context: UnhidePlugin, filter: ShowingRules): void {
         [workspace],
         (workspace0) => {
           const [leaf] = workspace0.getLeavesOfType("file-explorer");
-          // Patch finishRename so hidden-file renames keep their leading dot; reads private fileBeingRenamed/fileItems/innerEl.
+          // Patch the file-explorer rename method (saveRename on Obsidian ≥1.13.7, finishRename on older builds) so hidden-file renames keep their leading dot; reads private fileBeingRenamed/fileItems/innerEl.
           if (!leaf) {
             return false;
           }
           const { view } = leaf;
+          // Detect the rename method at runtime: Obsidian ≥1.13.7 renamed `finishRename` to `saveRename`.
+          // `monkey-around` installs a throwing stub for any absent key, so pass exactly one key — the one that exists on the prototype.
+          const renameMethod =
+            "saveRename" in Object.getPrototypeOf(view)
+              ? "saveRename"
+              : "finishRename";
           context.register(
             around(Object.getPrototypeOf(view) as unknown as typeof view, {
-              finishRename(next) {
+              [renameMethod](next: () => PromiseLike<void>) {
                 return async function fn(
                   this: FileExplorerView,
                   ...args: Parameters<typeof next>
@@ -352,7 +360,7 @@ function patchFileExplorer(context: UnhidePlugin, filter: ShowingRules): void {
                           },
                         });
                       try {
-                        // Report the UUID as the displayed filename so finishRename passes it to getNewPathAfterRename, which restores the hidden name.
+                        // Report the UUID as the displayed filename so the rename method passes it to getNewPathAfterRename, which restores the hidden name.
                         const patch3 = around(innerEl, {
                           getText(_proto2) {
                             return function fn2(
