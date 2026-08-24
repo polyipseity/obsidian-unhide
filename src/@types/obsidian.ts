@@ -37,73 +37,178 @@ declare module "@polyipseity/obsidian-plugin-library" {
   }
 }
 
+/**
+ * Private typings merged into Obsidian's `DataAdapter` via
+ * `Private<$DataAdapter, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $DataAdapter {
+  /**
+   * Checks existence via `fsPromises.access`; if `path` is truthy and
+   * case-insensitive, matches basename in `readdir(dirname)`. Verified in
+   * Obsidian 1.13.7.
+   */
   readonly _exists: (fullPath: string, path: string) => PromiseLike<boolean>;
+  /** The `Filesystem` property. Verified present in Obsidian 1.13.7. */
   readonly fs: Filesystem;
+  /** Returns the full path for `path`. Verified in Obsidian 1.13.7. */
   readonly getFullPath: (path: string) => string;
+  /** Returns the full real path for `realPath`. Verified in Obsidian 1.13.7. */
   readonly getFullRealPath: (realPath: string) => string;
+  /** Returns the real path for `path`. Verified in Obsidian 1.13.7. */
   readonly getRealPath: (path: string) => string;
+  /** Lists files recursively under `path`. Verified in Obsidian 1.13.7. */
   readonly listRecursive: (path: string) => PromiseLike<void>;
+  /**
+   * Reconciles a deletion at `realPath`/`path`. In Obsidian 1.13.7 `force`
+   * defaults to `true` (removes from `this.files`); `force=false` defers via
+   * `setTimeout` + `reconcileFile`.
+   */
   readonly reconcileDeletion: (
     realPath: string,
     path: string,
     force?: boolean,
   ) => PromiseLike<void>;
+  /**
+   * Optional. Reconciles a changed file with `stat`. Part of the `showFile`
+   * fallback chain in Obsidian 1.13.7.
+   */
   readonly reconcileFileChanged?: (
     realPath: string,
     path: string,
     stat: MobileStat,
   ) => void;
+  /**
+   * Optional. Reconciles a file internally. Preferred entry of the `showFile`
+   * fallback chain in Obsidian 1.13.7.
+   */
   readonly reconcileFileInternal?: (
     realPath: string,
     path: string,
   ) => PromiseLike<void>;
+  /** Reconciles folder creation at `realPath`/`path`. Verified in Obsidian 1.13.7. */
   readonly reconcileFolderCreation: (
     realPath: string,
     path: string,
   ) => PromiseLike<void>;
 }
 
+/**
+ * Private typings merged into the global `Element` via
+ * `Private<$Element, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $Element {
+  /**
+   * Returns the displayed text of the element. Used to read/swap the rename
+   * target. Verified in Obsidian 1.13.7.
+   */
   readonly getText: () => string;
 }
 
+/**
+ * Private typings merged into Obsidian's `FileExplorerView` via
+ * `Private<$FileExplorerView, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $FileExplorerView extends View {
+  /** The `TFile` currently being renamed, or `null`. Verified in Obsidian 1.13.7. */
   readonly fileBeingRenamed: TFile | null;
+  /** Map from path to `FileItem`. Verified in Obsidian 1.13.7. */
   readonly fileItems: Readonly<Record<string, FileItem>>;
-  /** @deprecated Renamed to `acceptRename` in Obsidian ≤1.12.7. Kept for ancient builds. */
+  /**
+   * @deprecated Renamed to `acceptRename` in Obsidian ≤1.12.7. Kept for ancient builds.
+   * Removed in Obsidian 1.13.7.
+   */
   readonly finishRename?: () => PromiseLike<void>;
-  /** @deprecated Renamed to `saveRename` in Obsidian ≥1.13.7. Kept for older builds. */
+  /**
+   * @deprecated Renamed to `saveRename` in Obsidian ≥1.13.7. Kept for older builds.
+   * Moved to the property-rename view in Obsidian 1.13.7.
+   */
   readonly acceptRename?: () => PromiseLike<void>;
+  /** The live rename method in Obsidian 1.13.7. */
   readonly saveRename?: () => PromiseLike<void>;
 }
 
+/**
+ * Private typings merged into Obsidian's `FileItem` via
+ * `Private<$FileItem, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $FileItem {
+  /**
+   * The `HTMLElement` whose `getText()` yields the displayed filename. Verified
+   * in Obsidian 1.13.7.
+   */
   readonly innerEl: HTMLElement;
 }
 
+/**
+ * Private typings merged into Obsidian's `Filesystem` via
+ * `Private<$Filesystem, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $Filesystem {
+  /**
+   * Optional. Stats `fullRealPath`. Used by the `showFile` fallback path in
+   * Obsidian 1.13.7.
+   */
   readonly stat?: (fullRealPath: string) => PromiseLike<MobileStat>;
 }
 
+/**
+ * Private typings merged into Obsidian's `MobileStat` via
+ * `Private<$MobileStat, PrivateKey>`. Mirrors `Stat` with `type` narrowed to
+ * `"directory" | "file"`. Verified in Obsidian 1.13.7.
+ */
 export interface $MobileStat extends Omit<Stat, "type"> {
   readonly type: "directory" | "file";
 }
 
+/**
+ * Private typings merged into Obsidian's `TFile` via
+ * `Private<$TFile, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $TFile {
+  /**
+   * Strips control chars, trims, and joins under the parent path. The plugin
+   * swaps this via `around` to restore the leading dot on hidden-file renames.
+   * Verified in Obsidian 1.13.7.
+   */
   readonly getNewPathAfterRename: (filename: string) => string;
 }
 
+/**
+ * Private typings merged into Obsidian's `Vault` via
+ * `Private<$Vault, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $Vault {
+  /** The config folder name (e.g. `.obsidian`). Verified in Obsidian 1.13.7. */
   readonly configDir: string;
+  /**
+   * Sets `configDir`, validates, and falls back to the default if invalid.
+   * Verified in Obsidian 1.13.7.
+   */
   readonly setConfigDir: (dirname: string) => void;
 }
 
+/**
+ * Private typings merged into the global `Window` via
+ * `Private<$Window, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $Window {
+  /**
+   * The global i18next instance (on `self`). Its `t` method is patched to
+   * suppress the `plugins.file-explorer.msg-bad-dotfile` error string. Verified
+   * in Obsidian 1.13.7.
+   */
   readonly i18next: i18n;
 }
 
+/**
+ * Private typings merged into Obsidian's `Workspace` via
+ * `Private<$Workspace, PrivateKey>`. Couples to Obsidian 1.13.7.
+ */
 export interface $Workspace {
+  /**
+   * Returns the file-explorer leaves (each with `view: FileExplorerView`) for
+   * `viewType`. Verified in Obsidian 1.13.7.
+   */
   readonly getLeavesOfType: (
     viewType: "file-explorer",
   ) => readonly (WorkspaceLeaf & {
