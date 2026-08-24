@@ -70,8 +70,10 @@ export interface $Element {
 export interface $FileExplorerView extends View {
   readonly fileBeingRenamed: TFile | null;
   readonly fileItems: Readonly<Record<string, FileItem>>;
-  /** @deprecated Use `saveRename` (Obsidian ≥1.13.7). Kept for older builds. */
+  /** @deprecated Renamed to `acceptRename` in Obsidian ≤1.12.7. Kept for ancient builds. */
   readonly finishRename?: () => PromiseLike<void>;
+  /** @deprecated Renamed to `saveRename` in Obsidian ≥1.13.7. Kept for older builds. */
+  readonly acceptRename?: () => PromiseLike<void>;
   readonly saveRename?: () => PromiseLike<void>;
 }
 
