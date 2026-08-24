@@ -47,6 +47,7 @@ export interface $DataAdapter {
   readonly reconcileDeletion: (
     realPath: string,
     path: string,
+    force?: boolean,
   ) => PromiseLike<void>;
   readonly reconcileFileChanged?: (
     realPath: string,
