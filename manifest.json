@@ -1,14 +1,14 @@
 {
   "author": "polyipseity",
   "authorUrl": "https://github.com/polyipseity",
-  "description": "Show hidden files, like dotfiles, in Obsidian.",
+  "description": "(formerly Show Hidden Files) Unhide hidden files, like dotfiles, in Obsidian.",
   "fundingUrl": {
     "Buy Me a Coffee": "https://buymeacoffee.com/polyipseity",
     "GitHub Sponsors": "https://github.com/sponsors/polyipseity"
   },
-  "id": "show-hidden-files",
+  "id": "unhide",
   "isDesktopOnly": false,
   "minAppVersion": "1.4.11",
-  "name": "Show Hidden Files",
+  "name": "Unhide",
   "version": "2.5.0"
 }

@@ -13,7 +13,7 @@
     "ts-essentials": "^10.2.1",
     "valibot": "^1.4.2"
   },
-  "description": "Show hidden files, like dotfiles, in Obsidian.",
+  "description": "(formerly Show Hidden Files) Unhide hidden files, like dotfiles, in Obsidian.",
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^20.5.2",
@@ -73,13 +73,13 @@
   ],
   "license": "AGPL-3.0-or-later",
   "main": "main.js",
-  "name": "obsidian-show-hidden-files",
+  "name": "obsidian-unhide",
   "obsidian": {
     "authorUrl": "https://github.com/polyipseity",
-    "id": "show-hidden-files",
+    "id": "unhide",
     "isDesktopOnly": false,
     "minAppVersion": "1.4.11",
-    "name": "Show Hidden Files"
+    "name": "Unhide"
   },
   "overrides": {},
   "packageManager": "bun@1.3.10",
