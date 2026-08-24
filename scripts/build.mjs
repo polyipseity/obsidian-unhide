@@ -8,8 +8,7 @@ import { argv } from "node:process";
 import { PATHS } from "./utils.mjs";
 
 const ARGV_PRODUCTION = 2,
-  COMMENT =
-    "// repository: https://github.com/polyipseity/obsidian-show-hidden-files",
+  COMMENT = "// repository: https://github.com/polyipseity/obsidian-unhide",
   DEV = argv[ARGV_PRODUCTION] === "dev";
 
 async function esbuild() {
