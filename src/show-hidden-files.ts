@@ -308,10 +308,7 @@ function patchFileExplorer(context: UnhidePlugin, filter: ShowingRules): void {
           // `acceptRename` to `saveRename`; ancient builds used `finishRename`. `monkey-around`
           // installs a throwing stub for any absent key, so pass exactly one key — the first that
           // exists on the prototype.
-          const renamePrototype = Object.getPrototypeOf(view) as Record<
-            string,
-            unknown
-          >;
+          const renamePrototype = Object.getPrototypeOf(view) as typeof view;
           const renameMethod: "saveRename" | "acceptRename" | "finishRename" =
             "saveRename" in renamePrototype
               ? "saveRename"
@@ -319,7 +316,7 @@ function patchFileExplorer(context: UnhidePlugin, filter: ShowingRules): void {
                 ? "acceptRename"
                 : "finishRename";
           context.register(
-            around(renamePrototype as unknown as typeof view, {
+            around(renamePrototype, {
               [renameMethod](next: () => PromiseLike<void>) {
                 return async function fn(
                   this: FileExplorerView,
