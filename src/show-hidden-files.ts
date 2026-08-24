@@ -287,7 +287,10 @@ function patchErrorMessage(context: UnhidePlugin, filter: ShowingRules): void {
  *
  * Lifecycle: lazily applied after layout is ready. If the `file-explorer` leaf is not present yet, the patch retries on every `workspace` `layout-change` event until it succeeds, then detaches that listener. The installed `around` patch and the retry listener are both registered on the plugin context for unload.
  */
-function patchFileExplorer(context: UnhidePlugin, filter: ShowingRules): void {
+export function patchFileExplorer(
+  context: UnhidePlugin,
+  filter: ShowingRules,
+): void {
   // Affects: renaming in file explorer
   const {
     app: { workspace },
