@@ -383,7 +383,7 @@ function addCommands(context: UnhidePlugin): void {
     addCommand(context, () => i18n.t(`commands.show-hidden-files-${type}`), {
       ...cmd,
       icon: i18n.t(`asset:commands.show-hidden-files-${type}-icon`),
-      id: `show-hidden-files.${type}`,
+      id: `unhide.${type}`,
     });
   }
 }
