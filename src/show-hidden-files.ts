@@ -149,10 +149,14 @@ export function loadShowHiddenFiles(context: UnhidePlugin): void {
  *
  * Obsidian-version coupling: depends on the private `DataAdapter._exists` method and the
  * `DataAdapter.reconcileDeletion` method. The public `exists` is intentionally avoided because it
- * triggers an await loop; `_exists` is used instead. If Obsidian renames or changes the signature
- * of `_exists` or `reconcileDeletion`, hidden-path tracking breaks and deleted hidden files may
- * disappear from the explorer. Both private members are reached through `revealPrivateFilter` /
- * `revealPrivateAsyncFilter`, so type changes fail at compile time.
+ * triggers an await loop; `_exists` is used instead. `reconcileDeletion(realPath, path, force?)`
+ * defaults `force` to `true`, which performs the real removal; `force = false` instead defers and
+ * re-adds the file. The plugin forwards only the two received args (`next.apply(this, args)`), so
+ * `force` defaults to `true` and Obsidian performs the actual deletion — the plugin merely observes
+ * it and re-shows the file if it still physically exists and passes `filter.test`. If Obsidian
+ * renames or changes the signature of `_exists` or `reconcileDeletion`, hidden-path tracking breaks
+ * and deleted hidden files may disappear from the explorer. Both private members are reached through
+ * `revealPrivateFilter` / `revealPrivateAsyncFilter`, so type changes fail at compile time.
  *
  * Lifecycle: the `around` patch is registered through `context.register` inside the
  * `revealPrivateFilter` callback, so it is unloaded automatically with the plugin context. The
