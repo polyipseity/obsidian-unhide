@@ -21,8 +21,8 @@ This file is automatically opened on first install. You can reopen it in setting
 ## Installation
 
 1. Install plugin.
-    - ~~Community plugins~~
-        1. ~~Install the [plugin][community plugin] from community plugins directly.~~
+    - Community plugins
+        1. Install the [plugin][community plugin] from community plugins directly.
     - Manual
         1. Create directory `unhide` under `.obsidian/plugins` of your vault.
         2. Place `manifest.json`, `main.js`, and `styles.css` from the [latest release] into the directory.
