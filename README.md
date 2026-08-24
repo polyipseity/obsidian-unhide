@@ -1,6 +1,6 @@
 # Unhide for Obsidian [![release](https://img.shields.io/github/v/release/polyipseity/obsidian-unhide)][latest release] [![Obsidian downloads](https://img.shields.io/badge/dynamic/json?logo=Obsidian&color=%238b6cef&label=downloads&query=$["unhide"].downloads&url=https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/community-plugin-stats.json)][community plugin]
 
-(formerly Show Hidden Files) Unhide hidden files, like dotfiles, in [Obsidian].
+(formerly Show Hidden Files) Unhide hidden files, like dotfiles.
 
 [![Buy Me a Coffee/embed][Buy Me a Coffee/embed]][Buy Me a Coffee]
 
@@ -158,7 +158,6 @@ Please report a vulnerability by opening a [private vulnerability report][new se
 [community plugin]: https://obsidian.md/plugins?id=unhide
 [latest release]: https://github.com/polyipseity/obsidian-unhide/releases/latest
 [new security advisory]: https://github.com/polyipseity/obsidian-unhide/security/advisories/new
-[Obsidian]: https://obsidian.md/
 [related]: https://github.com/polyipseity/obsidian-monorepo
 [repository]: https://github.com/polyipseity/obsidian-unhide
 [trailer]: https://raw.githubusercontent.com/polyipseity/obsidian-unhide/main/assets/trailer.png

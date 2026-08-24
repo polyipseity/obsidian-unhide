@@ -13,7 +13,7 @@
     "ts-essentials": "^10.2.1",
     "valibot": "^1.4.2"
   },
-  "description": "(formerly Show Hidden Files) Unhide hidden files, like dotfiles, in Obsidian.",
+  "description": "(formerly Show Hidden Files) Unhide hidden files, like dotfiles.",
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^20.5.2",
