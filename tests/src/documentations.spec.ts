@@ -117,7 +117,7 @@ describe("src/documentations.ts", () => {
         .mockImplementation(() => {});
 
       const listEl = self.document.createElement("ul");
-      const { item, heartButton } = makePluginRow("PLACEHOLDER");
+      const { item, heartButton } = makePluginRow("Example Plugin");
       listEl.appendChild(item);
       const clickSpy = vi.spyOn(heartButton, "click");
 
@@ -137,7 +137,7 @@ describe("src/documentations.ts", () => {
                   ],
                 },
               },
-              manifest: { name: "PLACEHOLDER", fundingUrl: {} },
+              manifest: { name: "Example Plugin", fundingUrl: {} },
             },
           } as unknown as Parameters<typeof DOCUMENTATIONS.donate>[0],
           { active: true, event: null },
@@ -157,7 +157,7 @@ describe("src/documentations.ts", () => {
 
       // installedPlugins.listEl is null so the ?? falls through to groupEl.
       const pluginsGroupEl = self.document.createElement("div");
-      const { item, heartButton } = makePluginRow("PLACEHOLDER");
+      const { item, heartButton } = makePluginRow("Example Plugin");
       pluginsGroupEl.appendChild(item);
       const clickSpy = vi.spyOn(heartButton, "click");
 
@@ -180,7 +180,7 @@ describe("src/documentations.ts", () => {
                   ],
                 },
               },
-              manifest: { name: "PLACEHOLDER", fundingUrl: {} },
+              manifest: { name: "Example Plugin", fundingUrl: {} },
             },
           } as unknown as Parameters<typeof DOCUMENTATIONS.donate>[0],
           { active: true, event: null },

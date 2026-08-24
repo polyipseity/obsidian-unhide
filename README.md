@@ -157,7 +157,7 @@ Please report a vulnerability by opening a [private vulnerability report][new se
 [changelog]: https://github.com/polyipseity/obsidian-unhide/blob/main/CHANGELOG.md
 [community plugin]: https://obsidian.md/plugins?id=unhide
 [latest release]: https://github.com/polyipseity/obsidian-unhide/releases/latest
-[new security advisory]: https://github.com/polyipseity/obsidian-plugin-template/security/advisories/new
+[new security advisory]: https://github.com/polyipseity/obsidian-unhide/security/advisories/new
 [Obsidian]: https://obsidian.md/
 [related]: https://github.com/polyipseity/obsidian-monorepo
 [repository]: https://github.com/polyipseity/obsidian-unhide

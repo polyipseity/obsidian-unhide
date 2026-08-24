@@ -1,5 +1,5 @@
 ---
-description: "Use when working in the obsidian-plugin-template repo and dealing with the vendored obsidian-plugin-library git submodule. Prevents confusing the submodule at vendor/obsidian-plugin-library with the sibling checkout at ../obsidian-plugin-library."
+description: "Use when working in a repo that vendors the obsidian-plugin-library git submodule and dealing with the vendored copy. Prevents confusing the submodule at vendor/obsidian-plugin-library with the sibling checkout at ../obsidian-plugin-library."
 name: "Vendor Submodule Boundary"
 applyTo: "**/*"
 alwaysApply: false
