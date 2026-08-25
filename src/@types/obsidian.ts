@@ -12,7 +12,6 @@ declare module "obsidian" {
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
   interface Filesystem extends Private<$Filesystem, PrivateKey> {}
-  interface InternalPlugin extends Private<$InternalPlugin, PrivateKey> {}
   interface InternalPlugins extends Private<$InternalPlugins, PrivateKey> {}
   interface MobileStat extends Private<$MobileStat, PrivateKey> {}
   interface TFile extends Private<$TFile, PrivateKey> {}
@@ -42,6 +41,24 @@ declare module "@polyipseity/obsidian-plugin-library" {
 }
 
 /**
+ * Generic Obsidian internal (built-in) plugin. `obsidian` does not export this
+ * type; the shape here is the minimal public surface shared by all internal
+ * plugins. Couples to Obsidian 1.13.7.
+ */
+export interface InternalPlugin {
+  /** Whether the internal plugin is currently enabled. */
+  readonly enabled: boolean;
+}
+
+/**
+ * Obsidian's Sync internal plugin (`internalPlugins.plugins.sync`). Carries the
+ * `$SyncPlugin` private shape so `revealPrivateFilter<[$App, $InternalPlugins,
+ * $SyncPlugin]>()` reveals `getStatus`/`on`/`off` on the `sync` key. Couples to
+ * Obsidian 1.13.7.
+ */
+export interface SyncPlugin extends Private<$SyncPlugin, PrivateKey> {}
+
+/**
  * Private typings merged into Obsidian's `App` via `Private<$App, PrivateKey>`.
  * Couples to Obsidian 1.13.7.
  */
@@ -60,16 +77,17 @@ export interface $App {
  * Obsidian 1.13.7.
  */
 export interface $InternalPlugins {
-  /** Map from internal plugin id to the plugin instance. The `sync` key is revealed as `$SyncPlugin` via the `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()` whitelist in `isSyncActive`. */
-  readonly plugins: Readonly<Record<string, $SyncPlugin>>;
-}
-
-/**
- * Private typings for an Obsidian internal plugin. Couples to Obsidian 1.13.7.
- */
-export interface $InternalPlugin {
-  /** Whether the internal plugin is currently enabled. */
-  readonly enabled: boolean;
+  /**
+   * Map from internal plugin id to the plugin instance. Most entries are
+   * generic `InternalPlugin`; the `sync` key is specifically a `SyncPlugin`
+   * (revealed as `$SyncPlugin` via the
+   * `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()` whitelist in
+   * `isSyncActive`). Typed as an intersection so the map stays generic while
+   * `sync` gains `getStatus`/`on`/`off`.
+   */
+  readonly plugins: Readonly<Record<string, InternalPlugin>> & {
+    readonly sync: SyncPlugin;
+  };
 }
 
 /**
