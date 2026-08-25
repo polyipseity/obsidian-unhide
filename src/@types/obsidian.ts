@@ -12,7 +12,13 @@ declare module "obsidian" {
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
   interface Filesystem extends Private<$Filesystem, PrivateKey> {}
+  // `Plugin` (via `Component`) does not declare `on`/`off` in this Obsidian
+  // version; those live on `Events`. Fold `Events` in so `InternalPlugin`
+  // exposes `on`/`off` from Obsidian rather than redeclaring them here.
+  type InternalPlugin = Plugin & import("obsidian").Events;
   interface InternalPlugins extends Private<$InternalPlugins, PrivateKey> {}
+  interface SyncPlugin
+    extends InternalPlugin, Private<$SyncPlugin, PrivateKey> {}
   interface MobileStat extends Private<$MobileStat, PrivateKey> {}
   interface TFile extends Private<$TFile, PrivateKey> {}
   interface Vault extends Private<$Vault, PrivateKey> {}
@@ -24,9 +30,11 @@ import type {
   FileExplorerView,
   FileItem,
   Filesystem,
+  InternalPlugin,
   InternalPlugins,
   MobileStat,
   Stat,
+  SyncPlugin,
   TFile,
   View,
   WorkspaceLeaf,
@@ -39,24 +47,6 @@ declare module "@polyipseity/obsidian-plugin-library" {
     readonly [PRIVATE_KEY]: never;
   }
 }
-
-/**
- * Generic Obsidian internal (built-in) plugin. `obsidian` does not export this
- * type; the shape here is the minimal public surface shared by all internal
- * plugins. Couples to Obsidian 1.13.7.
- */
-export interface InternalPlugin {
-  /** Whether the internal plugin is currently enabled. */
-  readonly enabled: boolean;
-}
-
-/**
- * Obsidian's Sync internal plugin (`internalPlugins.plugins.sync`). Carries the
- * `$SyncPlugin` private shape so `revealPrivateFilter<[$App, $InternalPlugins,
- * $SyncPlugin]>()` reveals `getStatus`/`on`/`off` on the `sync` key. Couples to
- * Obsidian 1.13.7.
- */
-export interface SyncPlugin extends Private<$SyncPlugin, PrivateKey> {}
 
 /**
  * Private typings merged into Obsidian's `App` via `Private<$App, PrivateKey>`.
@@ -107,10 +97,6 @@ export type SyncStatus =
 export interface $SyncPlugin {
   /** Current Sync connection status. Verified in Obsidian 1.13.7. */
   readonly getStatus: () => SyncStatus;
-  /** Subscribe to Sync events (Obsidian `Events`). */
-  on(name: string, callback: (...args: unknown[]) => unknown): void;
-  /** Unsubscribe from Sync events (Obsidian `Events`). */
-  off(name: string, callback: (...args: unknown[]) => unknown): void;
 }
 
 /**

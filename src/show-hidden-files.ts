@@ -313,9 +313,6 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
     [context.app],
     (app0) => {
       const sync = app0.internalPlugins.plugins.sync;
-      if (!sync) {
-        return;
-      }
       const handler = (): void => {
         reevaluateProtection(context);
       };
@@ -652,9 +649,6 @@ export function isSyncActive(context: PluginContext): boolean {
     [context.app],
     (app0) => {
       const sync = app0.internalPlugins.plugins.sync;
-      if (!sync) {
-        return false;
-      }
       const status = sync.getStatus();
       return status !== "uninitialized" && status !== "disconnected";
     },
