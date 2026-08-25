@@ -14,7 +14,7 @@ import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
 import type { UnhidePlugin } from "./main.js";
 import { Settings } from "./settings-data.js";
-import { isSyncEnabled } from "./show-hidden-files.js";
+import { isSyncActive } from "./show-hidden-files.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
   public constructor(
@@ -88,7 +88,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     this.newAllSettingsWidget(Settings.DEFAULT, Settings.fix);
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
-      const syncEnabled = isSyncEnabled(context);
+      const syncEnabled = isSyncActive(context);
       const statusKey = syncEnabled
         ? settings.value.protectSync
           ? "settings.protect-sync-status-protected"
