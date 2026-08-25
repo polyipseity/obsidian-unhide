@@ -162,6 +162,15 @@ export function loadShowHiddenFiles(context: UnhidePlugin): void {
  * reached through `revealPrivateFilter` / `revealPrivateAsyncFilter`, so type changes fail at compile
  * time.
  *
+ * Sync / data-loss risk (issue #35): `reconcileDeletion(force=true)` removes the entry from the
+ * adapter `files` index and triggers `file-removed`/`folder-removed`, which the Vault handler turns
+ * into a vault `"delete"` event. Obsidian Sync subscribes to `"delete"` and propagates deletions to
+ * other synced devices (Sync is not a backup — only version history is kept). The destructive
+ * `reconcileDeletion` calls originate from `hideFile`/`hideAll` (plugin unload, toggling hidden files
+ * off, or changing rules), not from this observer patch, which only forwards genuine deletions. A
+ * later phase adds a Sync-safe setting (enabled by default) that, when Obsidian Sync is detected,
+ * makes `hideFile` a no-op to avoid these destructive calls.
+ *
  * Lifecycle: the `around` patch is registered through `context.register` inside the
  * `revealPrivateFilter` callback, so it is unloaded automatically with the plugin context. The
  * `hiddenPaths` set is owned by `patchVault` and cleared via the registered `hideAll` cleanup.
@@ -175,6 +184,9 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
     } = context,
     hiddenPaths = new Set<string>();
   async function hideAll(): Promise<void> {
+    // SAFETY: `hideFile` calls `reconcileDeletion(force=true)`, which emits a vault `"delete"` event
+    // that Obsidian Sync can propagate (data-loss risk, issue #35). A later phase gates this call
+    // behind the Sync-safe setting so it becomes a no-op when Sync is detected.
     await Promise.all(
       [...hiddenPaths].map(async (path) => hideFile(context, path)),
     );
@@ -184,6 +196,9 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
     filter.onChanged.listen(async () =>
       Promise.all(
         [...hiddenPaths].map(async (path) =>
+          // SAFETY: the `hideFile` branch calls `reconcileDeletion(force=true)`, emitting a vault
+          // `"delete"` event that Obsidian Sync can propagate (data-loss risk, issue #35). A later
+          // phase gates this branch behind the Sync-safe setting so it becomes a no-op when Sync is detected.
           filter.test(path) ? showFile(context, path) : hideFile(context, path),
         ),
       ),
@@ -532,6 +547,24 @@ async function showFile(context: PluginContext, path: string): Promise<void> {
   );
 }
 
+/**
+ * Hides a path by reconciling it out of Obsidian's adapter/vault index.
+ *
+ * Mechanism: calls `DataAdapter.reconcileDeletion(realPath, path)` with only the two received args,
+ * so its internal `force` defaults to `true` (`void 0===n&&(n=!0)`), which performs the real
+ * removal. `reconcileDeletion(force=true)` removes the entry from the adapter `files` index and
+ * triggers `file-removed`/`folder-removed`, which the Vault handler turns into a vault `"delete"`
+ * event (`a.deleted=!0` + `trigger("delete", a)`).
+ *
+ * Data-loss risk (issue #35): Obsidian Sync subscribes to vault `"delete"` events and propagates
+ * deletions to other synced devices. Because hiding emits the same deletion events Obsidian uses
+ * for real deletions, hiding a file in a synced vault can cause it to be deleted on other devices.
+ * Sync is not a backup — it only keeps version history for recovery. This is the data-loss path
+ * reported in issue #35 (triggered by plugin unload, toggling hidden files off, or changing rules).
+ *
+ * Mitigation: a later phase adds a Sync-safe setting (enabled by default) that, when Obsidian Sync
+ * is detected, makes this function a no-op so the destructive `reconcileDeletion` call is skipped.
+ */
 async function hideFile(context: PluginContext, path: string): Promise<void> {
   await revealPrivateAsyncFilter<[$DataAdapter]>()(
     context,
