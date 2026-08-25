@@ -12,10 +12,7 @@ declare module "obsidian" {
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
   interface Filesystem extends Private<$Filesystem, PrivateKey> {}
-  // `Plugin` (via `Component`) does not declare `on`/`off` in this Obsidian
-  // version; those live on `Events`. Fold `Events` in so `InternalPlugin`
-  // exposes `on`/`off` from Obsidian rather than redeclaring them here.
-  type InternalPlugin = Plugin & import("obsidian").Events;
+  interface InternalPlugin extends Events {}
   interface InternalPlugins extends Private<$InternalPlugins, PrivateKey> {}
   interface SyncPlugin
     extends InternalPlugin, Private<$SyncPlugin, PrivateKey> {}
@@ -27,6 +24,7 @@ declare module "obsidian" {
 import type { Private } from "@polyipseity/obsidian-plugin-library";
 import type { i18n } from "i18next";
 import type {
+  Events,
   FileExplorerView,
   FileItem,
   Filesystem,
@@ -39,6 +37,9 @@ import type {
   View,
   WorkspaceLeaf,
 } from "obsidian";
+
+// @ts-expect-error: TypeScript bug
+type _TS_6196 = Events;
 
 declare const PRIVATE_KEY: unique symbol;
 type PrivateKey = typeof PRIVATE_KEY;
@@ -76,16 +77,9 @@ export interface $InternalPlugins {
    * `sync` gains `getStatus`/`on`/`off`.
    */
   readonly plugins: Readonly<Record<string, InternalPlugin>> & {
-    readonly sync: SyncPlugin;
+    readonly sync?: SyncPlugin;
   };
 }
-
-/**
- * Obsidian Sync connection status. Verified in Obsidian 1.13.7: the Sync
- * plugin's `getStatus()` returns one of these strings.
- */
-export type SyncStatus =
-  "uninitialized" | "disconnected" | "error" | "paused" | "syncing" | "synced";
 
 /**
  * Private typings for Obsidian's Sync internal plugin
@@ -96,7 +90,31 @@ export type SyncStatus =
  */
 export interface $SyncPlugin {
   /** Current Sync connection status. Verified in Obsidian 1.13.7. */
-  readonly getStatus: () => SyncStatus;
+  readonly getStatus: () => $SyncPlugin.Status;
+  /** Subscribe to the Sync `"status-change"` event (Obsidian `Events`). */
+  on(
+    name: "status-change",
+    callback: (status: $SyncPlugin.Status) => unknown,
+  ): void;
+  /** Unsubscribe from the Sync `"status-change"` event (Obsidian `Events`). */
+  off(
+    name: "status-change",
+    callback: (status: $SyncPlugin.Status) => unknown,
+  ): void;
+}
+
+/**
+ * Obsidian Sync connection status. Verified in Obsidian 1.13.7: the Sync
+ * plugin's `getStatus()` returns one of these strings.
+ */
+export namespace $SyncPlugin {
+  export type Status =
+    | "uninitialized"
+    | "disconnected"
+    | "error"
+    | "paused"
+    | "syncing"
+    | "synced";
 }
 
 /**

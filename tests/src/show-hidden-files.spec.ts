@@ -9,7 +9,7 @@
  * (never an absent key, which would install a throwing stub via monkey-around).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { SyncStatus } from "../../src/@types/obsidian.js";
+import type { $SyncPlugin } from "../../src/@types/obsidian.js";
 
 type RenameMethod = "saveRename" | "acceptRename" | "finishRename";
 
@@ -125,7 +125,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
   interface FakeContext {
     app: {
       internalPlugins: {
-        plugins: { sync?: { getStatus: () => SyncStatus } };
+        plugins: { sync?: { getStatus: () => $SyncPlugin.Status } };
       };
       vault: { adapter: FakeAdapter };
     };
@@ -140,7 +140,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
 
   function makeContext(
     protectSync: boolean,
-    syncStatus?: SyncStatus,
+    syncStatus?: $SyncPlugin.Status,
   ): FakeContext {
     const adapter: FakeAdapter = {
       reconcileDeletion: vi.fn(),
