@@ -43,12 +43,13 @@
     "showing-rules": "$t(generic.show_gerund, capitalize) $t(generic.rule_other)",
     "showing-rules-description": "$t(generic.list-description, capitalize)",
     "showing-rules-edit": "$t(generic.edit, capitalize)",
-    "sync-safe-hide": "Safe hide in synced vaults",
-    "sync-safe-hide-description": "When enabled and Obsidian Sync is detected, hiding files becomes a no-op to avoid data loss. Best-effort; may still have unknown bugs with Sync.",
-    "sync-safe-hide-active": "Active — Obsidian Sync detected",
-    "sync-safe-hide-inactive": "Inactive — setting off or Sync not detected"
+    "protect-sync": "Protect Obsidian Sync",
+    "protect-sync-description": "When on and Obsidian Sync is detected, hiding files is skipped to avoid deleting them on other devices. Best-effort; may still have unknown bugs with Sync.",
+    "protect-sync-status-protected": "Sync detected, protection on",
+    "protect-sync-status-unprotected": "Sync detected, protection off",
+    "protect-sync-status-unknown": "Sync not enabled"
   },
   "notices": {
-    "sync-data-loss-warning": "Sync is enabled — hiding is disabled to prevent data loss on other devices."
+    "sync-data-loss-warning": "Sync is on. Hiding is skipped to avoid deleting files on other devices."
   }
 }

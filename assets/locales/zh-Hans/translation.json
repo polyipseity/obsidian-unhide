@@ -36,16 +36,17 @@
     },
     "interface": "界面",
     "open-changelog-on-update": "$t(generic.open)$t(generic.documentations.changelog)更新中",
+    "protect-sync": "Protect Obsidian Sync",
+    "protect-sync-description": "When on and Obsidian Sync is detected, hiding files is skipped to avoid deleting them on other devices. Best-effort; may still have unknown bugs with Sync.",
+    "protect-sync-status-protected": "Sync detected, protection on",
+    "protect-sync-status-unknown": "Sync not enabled",
+    "protect-sync-status-unprotected": "Sync detected, protection off",
     "show-configuration-folder": "$t(generic.show)配置文件夹",
     "show-configuration-folder-description": "覆盖「$t(settings.showing-rules)」。",
     "show-hidden-files": "$t(generic.show)$t(generic.hidden-file)",
     "show-hidden-files-description-HTML": "请也启用<code>文件与链接 > 检测所有类型文件</code>以正常工作。可从命令面板切换。",
     "showing-rules": "$t(generic.show)$t(generic.rule)",
     "showing-rules-description": "$t(generic.list-description)",
-    "showing-rules-edit": "$t(generic.edit)",
-    "sync-safe-hide": "Safe hide in synced vaults",
-    "sync-safe-hide-active": "Active — Obsidian Sync detected",
-    "sync-safe-hide-description": "When enabled and Obsidian Sync is detected, hiding files becomes a no-op to avoid data loss. Best-effort; may still have unknown bugs with Sync.",
-    "sync-safe-hide-inactive": "Inactive — setting off or Sync not detected"
+    "showing-rules-edit": "$t(generic.edit)"
   }
 }

@@ -30,6 +30,6 @@
     "show-hidden-files-icon": "$t(asset:generic.show-hidden-files.show-icon)",
     "showing-rules-edit-icon": "$t(asset:generic.edit-list-icon)",
     "showing-rules-icon": "$t(asset:generic.rule-icon)",
-    "sync-safe-hide-icon": "shield"
+    "protect-sync-icon": "shield"
   }
 }

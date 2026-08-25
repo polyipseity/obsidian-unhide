@@ -65,17 +65,18 @@ describe("PluginLocales", () => {
     expect(typeof zhHansRes).toBe("object");
   });
 
-  it("declares the issue #35 sync-safe-hide keys in en translation", async () => {
+  it("declares the GH#35 protect-sync keys in en translation", async () => {
     const enRes = PluginLocales.RESOURCES[PluginLocales.DEFAULT_LANGUAGE];
     const translation = await enRes[PluginLocales.DEFAULT_NAMESPACE]();
     const settings = translation.settings as Record<string, unknown>;
     const notices = translation.notices as Record<string, unknown>;
 
     for (const key of [
-      "sync-safe-hide",
-      "sync-safe-hide-description",
-      "sync-safe-hide-active",
-      "sync-safe-hide-inactive",
+      "protect-sync",
+      "protect-sync-description",
+      "protect-sync-status-protected",
+      "protect-sync-status-unprotected",
+      "protect-sync-status-unknown",
     ] as const) {
       expect(typeof settings[key]).toBe("string");
       expect((settings[key] as string).length).toBeGreaterThan(0);
