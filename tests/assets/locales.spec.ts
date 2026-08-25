@@ -82,9 +82,9 @@ describe("PluginLocales", () => {
       expect((settings[key] as string).length).toBeGreaterThan(0);
     }
 
-    expect(typeof notices["sync-data-loss-warning"]).toBe("string");
-    expect(
-      (notices["sync-data-loss-warning"] as string).length,
-    ).toBeGreaterThan(0);
+    expect(typeof notices["protect-sync-active"]).toBe("string");
+    expect((notices["protect-sync-active"] as string).length).toBeGreaterThan(
+      0,
+    );
   });
 });

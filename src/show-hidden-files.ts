@@ -195,7 +195,7 @@ function evaluateProtectionTransition(context: UnhidePlugin): void {
   if (now && !lastProtectionActive) {
     // Transition inactive -> active: warn that hiding is now skipped to avoid Sync data-loss.
     notice(
-      () => context.language.value.t("notices.sync-data-loss-warning"),
+      () => context.language.value.t("notices.protect-sync-active"),
       NOTICE_NO_TIMEOUT,
       context,
     );
@@ -643,7 +643,7 @@ export async function showFile(
  * destructive `reconcileDeletion` would propagate deletions to other synced
  * devices. This helper lets the `protectSync` setting gate that call. When
  * protection is active, `hideFile` defers the call and
- * `evaluateProtectionTransition` shows the `notices.sync-data-loss-warning`
+ * `evaluateProtectionTransition` shows the `notices.protect-sync-active`
  * notice on activation and flushes the deferred paths on deactivation.
  */
 export function isSyncEnabled(context: PluginContext): boolean {

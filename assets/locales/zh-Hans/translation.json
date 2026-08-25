@@ -25,7 +25,7 @@
   },
   "name": "Unhide",
   "notices": {
-    "sync-data-loss-warning": "Sync is on. Hiding is skipped to avoid deleting files on other devices."
+    "protect-sync-active": "Sync is on. Hiding is skipped to avoid deleting files on other devices."
   },
   "settings": {
     "documentation": "$t(generic.documentation)",
