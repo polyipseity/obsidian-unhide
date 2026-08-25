@@ -159,31 +159,40 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         const { settingEl } = setting;
-        const active = settings.value.syncSafeHide && isSyncEnabled(context);
+        const syncEnabled = isSyncEnabled(context);
+        const statusKey = syncEnabled
+          ? settings.value.protectSync
+            ? "settings.protect-sync-status-protected"
+            : "settings.protect-sync-status-unprotected"
+          : "settings.protect-sync-status-unknown";
+        const statusClass = syncEnabled
+          ? settings.value.protectSync
+            ? "unhide-status-protected"
+            : "unhide-status-unprotected"
+          : "unhide-status-unknown";
         setting
-          .setName(i18n.t("settings.sync-safe-hide"))
+          .setName(i18n.t("settings.protect-sync"))
           .setDesc(
             createDocumentFragment(settingEl.ownerDocument, (frag) => {
               createChildElement(frag, "span", (ele) => {
                 setSanitizedInnerHTML(
                   ele,
-                  i18n.t("settings.sync-safe-hide-description"),
+                  i18n.t("settings.protect-sync-description"),
                 );
               });
               createChildElement(frag, "br", () => {});
               createChildElement(frag, "span", (ele) => {
-                ele.textContent = active
-                  ? i18n.t("settings.sync-safe-hide-active")
-                  : i18n.t("settings.sync-safe-hide-inactive");
+                ele.textContent = i18n.t(statusKey);
+                ele.classList.add(statusClass);
               });
             }),
           )
           .addToggle(
             linkSetting(
-              () => settings.value.syncSafeHide,
+              () => settings.value.protectSync,
               async (value) =>
                 settings.mutate((settingsM) => {
-                  settingsM.syncSafeHide = value;
+                  settingsM.protectSync = value;
                 }),
               () => {
                 this.postMutate();
@@ -192,11 +201,11 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           )
           .addExtraButton(
             resetButton(
-              i18n.t("asset:settings.sync-safe-hide-icon"),
+              i18n.t("asset:settings.protect-sync-icon"),
               i18n.t("settings.reset"),
               async () =>
                 settings.mutate((settingsM) => {
-                  settingsM.syncSafeHide = Settings.DEFAULT.syncSafeHide;
+                  settingsM.protectSync = Settings.DEFAULT.protectSync;
                 }),
               () => {
                 this.postMutate();

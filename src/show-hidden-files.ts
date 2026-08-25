@@ -1,10 +1,12 @@
 import {
   type PluginContext,
+  NOTICE_NO_TIMEOUT,
   Rules,
   SettingRules,
   addCommand,
   anyToError,
   deepFreeze,
+  notice,
   printError,
   revealPrivateAsyncFilter,
   revealPrivateFilter,
@@ -21,6 +23,8 @@ import type {
   $FileExplorerView,
   $FileItem,
   $Filesystem,
+  $InternalPlugin,
+  $InternalPlugins,
   $MobileStat,
   $TFile,
   $Vault,
@@ -163,19 +167,60 @@ export function loadShowHiddenFiles(context: UnhidePlugin): void {
  * reached through `revealPrivateFilter` / `revealPrivateAsyncFilter`, so type changes fail at compile
  * time.
  *
- * Sync / data-loss risk (issue #35): `reconcileDeletion(force=true)` removes the entry from the
- * adapter `files` index and triggers `file-removed`/`folder-removed`, which the Vault handler turns
- * into a vault `"delete"` event. Obsidian Sync subscribes to `"delete"` and propagates deletions to
- * other synced devices (Sync is not a backup — only version history is kept). The destructive
+ * Sync / data-loss risk (GH#35 (obsidian-unhide)): `reconcileDeletion(force=true)` removes the entry
+ * from the adapter `files` index and triggers `file-removed`/`folder-removed`, which the Vault handler
+ * turns into a vault `"delete"` event. Obsidian Sync subscribes to `"delete"` and propagates deletions
+ * to other synced devices (Sync is not a backup — only version history is kept). The destructive
  * `reconcileDeletion` calls originate from `hideFile`/`hideAll` (plugin unload, toggling hidden files
- * off, or changing rules), not from this observer patch, which only forwards genuine deletions. A
- * later phase adds a Sync-safe setting (enabled by default) that, when Obsidian Sync is detected,
- * makes `hideFile` a no-op to avoid these destructive calls.
+ * off, or changing rules), not from this observer patch, which only forwards genuine deletions. The
+ * `protectSync` setting (enabled by default) defers `hideFile` while Obsidian Sync is detected, so
+ * these destructive calls are avoided.
  *
  * Lifecycle: the `around` patch is registered through `context.register` inside the
  * `revealPrivateFilter` callback, so it is unloaded automatically with the plugin context. The
  * `hiddenPaths` set is owned by `patchVault` and cleared via the registered `hideAll` cleanup.
  */
+// Paths that `hideFile` deferred because Sync-safe protection was active. They are flushed
+// (reconciled out of the adapter) once protection turns off, so the deferral does not leak.
+const protectedHiddenPaths = new Set<string>();
+// Tracks the last observed protection state so the notice/flush only fire on a transition.
+let lastProtectionActive = false;
+
+function isProtectionActive(context: UnhidePlugin): boolean {
+  return context.settings.value.protectSync && isSyncEnabled(context);
+}
+
+function evaluateProtectionTransition(context: UnhidePlugin): void {
+  const now = isProtectionActive(context);
+  if (now && !lastProtectionActive) {
+    // Transition inactive -> active: warn that hiding is now skipped to avoid Sync data-loss.
+    notice(
+      () => context.language.value.t("notices.sync-data-loss-warning"),
+      NOTICE_NO_TIMEOUT,
+      context,
+    );
+  } else if (!now && lastProtectionActive) {
+    // Transition active -> inactive: flush the deferred paths so they are actually hidden.
+    void flushProtected(context);
+  }
+  lastProtectionActive = now;
+}
+
+async function flushProtected(context: UnhidePlugin): Promise<void> {
+  await Promise.all(
+    [...protectedHiddenPaths].map(async (path) => {
+      protectedHiddenPaths.delete(path);
+      await revealPrivateAsyncFilter<[$DataAdapter]>()(
+        context,
+        [context.app.vault.adapter],
+        async (adapter0) =>
+          adapter0.reconcileDeletion(adapter0.getRealPath(path), path),
+        noop,
+      );
+    }),
+  );
+}
+
 function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
   const {
       app: {
@@ -186,24 +231,26 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
     hiddenPaths = new Set<string>();
   async function hideAll(): Promise<void> {
     // SAFETY: `hideFile` calls `reconcileDeletion(force=true)`, which emits a vault `"delete"` event
-    // that Obsidian Sync can propagate (data-loss risk, issue #35). A later phase gates this call
-    // behind the Sync-safe setting so it becomes a no-op when Sync is detected.
+    // that Obsidian Sync can propagate (data-loss risk, GH#35 (obsidian-unhide)). The `protectSync`
+    // setting defers this call while Sync is detected.
     await Promise.all(
       [...hiddenPaths].map(async (path) => hideFile(context, path)),
     );
   }
   context.register(hideAll);
   context.register(
-    filter.onChanged.listen(async () =>
-      Promise.all(
+    filter.onChanged.listen(async () => {
+      // Re-evaluate protection on every rule change so the notice/flush fire on a transition.
+      evaluateProtectionTransition(context);
+      return Promise.all(
         [...hiddenPaths].map(async (path) =>
           // SAFETY: the `hideFile` branch calls `reconcileDeletion(force=true)`, emitting a vault
-          // `"delete"` event that Obsidian Sync can propagate (data-loss risk, issue #35). A later
-          // phase gates this branch behind the Sync-safe setting so it becomes a no-op when Sync is detected.
+          // `"delete"` event that Obsidian Sync can propagate (data-loss risk, GH#35 (obsidian-unhide)).
+          // The `protectSync` setting defers this branch while Sync is detected.
           filter.test(path) ? showFile(context, path) : hideFile(context, path),
         ),
-      ),
-    ),
+      );
+    }),
   );
   revealPrivateFilter<[$DataAdapter]>()(
     context,
@@ -253,6 +300,14 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
       [adapter],
       async (adapter0) => adapter0.listRecursive(""),
       noop,
+    ),
+  );
+  context.register(
+    context.settings.onMutate(
+      (setting) => setting.protectSync,
+      () => {
+        evaluateProtectionTransition(context);
+      },
     ),
   );
 }
@@ -511,6 +566,8 @@ export async function showFile(
   context: PluginContext,
   path: string,
 ): Promise<void> {
+  // A path shown again is no longer pending-hidden; drop it so it is not flushed later.
+  protectedHiddenPaths.delete(path);
   await revealPrivateAsyncFilter<[$DataAdapter, $Filesystem, $MobileStat]>()(
     context,
     [context.app.vault.adapter],
@@ -560,14 +617,14 @@ export async function showFile(
  * triggers `file-removed`/`folder-removed`, which the Vault handler turns into a vault `"delete"`
  * event (`a.deleted=!0` + `trigger("delete", a)`).
  *
- * Data-loss risk (issue #35): Obsidian Sync subscribes to vault `"delete"` events and propagates
- * deletions to other synced devices. Because hiding emits the same deletion events Obsidian uses
- * for real deletions, hiding a file in a synced vault can cause it to be deleted on other devices.
+ * Data-loss risk (GH#35 (obsidian-unhide)): Obsidian Sync subscribes to vault `"delete"` events and
+ * propagates deletions to other synced devices. Because hiding emits the same deletion events Obsidian
+ * uses for real deletions, hiding a file in a synced vault can cause it to be deleted on other devices.
  * Sync is not a backup — it only keeps version history for recovery. This is the data-loss path
- * reported in issue #35 (triggered by plugin unload, toggling hidden files off, or changing rules).
+ * reported in GH#35 (triggered by plugin unload, toggling hidden files off, or changing rules).
  *
- * Mitigation: a later phase adds a Sync-safe setting (enabled by default) that, when Obsidian Sync
- * is detected, makes this function a no-op so the destructive `reconcileDeletion` call is skipped.
+ * Mitigation: the `protectSync` setting (enabled by default) defers `hideFile`'s `reconcileDeletion`
+ * call while Sync is detected, so the destructive call is skipped.
  */
 
 /**
@@ -575,18 +632,22 @@ export async function showFile(
  *
  * Reads the `App.internalPlugins.plugins.sync.enabled` path via the `$App`
  * private augmentation in `src/@types/obsidian.ts` (the `internalPlugins`
- * member is not in `obsidian.d.ts` for the pinned Obsidian version). The
- * private member is reached through `revealPrivateFilter`, so a type change
- * surfaces as a compile error rather than a runtime crash. The fallback
- * returns `false` when the private API is unavailable or throws, degrading to
+ * member is not in `obsidian.d.ts` for the pinned Obsidian version). Each
+ * private type in the chain (`$App` -> `$InternalPlugins` -> `$InternalPlugin`)
+ * is reached through a nested `revealPrivateFilter` guard, so a type change
+ * surfaces as a compile error rather than a runtime crash. Every level falls
+ * back to `false` when its private API is unavailable or throws, degrading to
  * "not enabled" instead of propagating an error.
  *
- * Data-loss risk (issue #35): when Sync is enabled, `hideFile`'s destructive
- * `reconcileDeletion` would propagate deletions to other synced devices. This
- * helper lets the Sync-safe setting gate that call.
+ * Data-loss risk (GH#35 (obsidian-unhide)): when Sync is enabled, `hideFile`'s
+ * destructive `reconcileDeletion` would propagate deletions to other synced
+ * devices. This helper lets the `protectSync` setting gate that call. When
+ * protection is active, `hideFile` defers the call and
+ * `evaluateProtectionTransition` shows the `notices.sync-data-loss-warning`
+ * notice on activation and flushes the deferred paths on deactivation.
  */
 export function isSyncEnabled(context: PluginContext): boolean {
-  return revealPrivateFilter<[$App]>()(
+  return revealPrivateFilter<[$App, $InternalPlugins, $InternalPlugin]>()(
     context,
     [context.app],
     (app0) => app0.internalPlugins.plugins.sync?.enabled === true,
@@ -598,12 +659,14 @@ export async function hideFile(
   context: UnhidePlugin,
   path: string,
 ): Promise<void> {
-  // Sync-safe guard (issue #35): when the setting is on and Sync is detected, skip the destructive
-  // `reconcileDeletion` so deletions are not propagated to other synced devices. `hiddenPaths`
-  // bookkeeping stays consistent because the caller in `patchVault` still adds/removes the path.
-  if (context.settings.value.syncSafeHide && isSyncEnabled(context)) {
+  // Re-evaluate protection on every hide so the notice/flush fire on a transition.
+  evaluateProtectionTransition(context);
+  if (isProtectionActive(context)) {
+    // Track the path as pending-hidden; do NOT call reconcileDeletion (avoids Sync data-loss).
+    protectedHiddenPaths.add(path);
     return;
   }
+  protectedHiddenPaths.delete(path);
   await revealPrivateAsyncFilter<[$DataAdapter]>()(
     context,
     [context.app.vault.adapter],

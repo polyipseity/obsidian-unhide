@@ -28,6 +28,7 @@ vi.mock("@polyipseity/obsidian-plugin-library", async (importOriginal) => {
     >();
   const mock: Record<string, unknown> = {
     ...actual,
+    notice: vi.fn(),
     revealPrivateFilter:
       () =>
       (
@@ -102,17 +103,23 @@ describe("src/show-hidden-files.ts rename-method detection", () => {
 });
 
 /**
- * Unit tests for the Sync-safe guard (issue #35).
+ * Unit tests for the Sync-safe guard (GH#35 (obsidian-unhide)).
  *
  * `hideFile`/`showFile`/`isSyncEnabled` are driven through a fake `context` shaped like
  * `UnhidePlugin`: `app.internalPlugins.plugins.sync.enabled` controls Sync detection, and
- * `settings.value.syncSafeHide` toggles the guard. The adapter is a fake whose `reconcileDeletion`
+ * `settings.value.protectSync` toggles the guard. The adapter is a fake whose `reconcileDeletion`
  * is a spy and `getRealPath` is identity. `revealPrivateFilter`/`revealPrivateAsyncFilter` are
  * mocked (see top of file) to forward the private member into the callback, so `hideFile` reaches
- * `adapter.reconcileDeletion` and `isSyncEnabled` reads the sync plugin state.
+ * `adapter.reconcileDeletion` and `isSyncEnabled` reads the sync plugin state. `notice` is mocked
+ * so we can assert the transition warning.
+ *
+ * `protectedHiddenPaths` and `lastProtectionActive` are module-scope state shared across calls and
+ * tests. Because `lastProtectionActive` is module-scope, each test resets it by re-importing the
+ * module under test with `vi.resetModules()` and re-importing `notice` from the mocked library.
  */
-describe("src/show-hidden-files.ts Sync-safe guard (issue #35)", () => {
+describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", () => {
   const PATH = ".hidden/file.md";
+  const PATH2 = ".hidden/other.md";
 
   interface FakeContext {
     app: {
@@ -121,7 +128,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (issue #35)", () => {
       };
       vault: { adapter: FakeAdapter };
     };
-    settings: { value: { syncSafeHide: boolean } };
+    settings: { value: { protectSync: boolean } };
     register: () => void;
   }
   interface FakeAdapter {
@@ -131,7 +138,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (issue #35)", () => {
   }
 
   function makeContext(
-    syncSafeHide: boolean,
+    protectSync: boolean,
     syncEnabled?: boolean,
   ): FakeContext {
     const adapter: FakeAdapter = {
@@ -150,16 +157,18 @@ describe("src/show-hidden-files.ts Sync-safe guard (issue #35)", () => {
         },
         vault: { adapter },
       },
-      settings: { value: { syncSafeHide } },
+      settings: { value: { protectSync } },
       register: vi.fn(),
     };
   }
 
+  // Reset module-scope state (`lastProtectionActive`) and mocks between tests.
   afterEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
   });
 
-  it("hideFile calls reconcileDeletion when syncSafeHide is OFF", async () => {
+  it("hideFile calls reconcileDeletion when protectSync is OFF", async () => {
     const context = makeContext(false, true);
     const { hideFile } = await import("../../src/show-hidden-files.js");
     await hideFile(context as never, PATH);
@@ -192,6 +201,56 @@ describe("src/show-hidden-files.ts Sync-safe guard (issue #35)", () => {
       context.app.vault.adapter.reconcileFileInternal,
     ).toHaveBeenCalledExactlyOnceWith(PATH, PATH);
     expect(context.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
+  });
+
+  it("shows the notice only on the transition to active protection, not per blocked file", async () => {
+    const { notice } = await import("@polyipseity/obsidian-plugin-library");
+    // First hide with protection OFF establishes the inactive baseline.
+    const off = makeContext(false, true);
+    const { hideFile } = await import("../../src/show-hidden-files.js");
+    await hideFile(off as never, PATH);
+    expect(notice).not.toHaveBeenCalled();
+    // Now turn protection ON and hide many files: notice fires once on transition.
+    const on = makeContext(true, true);
+    await hideFile(on as never, PATH);
+    await hideFile(on as never, PATH2);
+    await hideFile(on as never, PATH);
+    expect(notice).toHaveBeenCalledTimes(1);
+  });
+
+  it("flushes all pending paths when protection turns off", async () => {
+    const { notice } = await import("@polyipseity/obsidian-plugin-library");
+    const on = makeContext(true, true);
+    const { hideFile } = await import("../../src/show-hidden-files.js");
+    await hideFile(on as never, PATH);
+    await hideFile(on as never, PATH2);
+    expect(on.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
+    // Turn protection OFF via a transition (hide with protectSync false) -> flush runs on the
+    // context that triggered the transition.
+    const off = makeContext(false, true);
+    await hideFile(off as never, PATH);
+    expect(off.app.vault.adapter.reconcileDeletion).toHaveBeenCalledWith(
+      PATH,
+      PATH,
+    );
+    expect(off.app.vault.adapter.reconcileDeletion).toHaveBeenCalledWith(
+      PATH2,
+      PATH2,
+    );
+    // Notice fired once on the inactive->active transition (step 2), not on flush.
+    expect(notice).toHaveBeenCalledTimes(1);
+  });
+
+  it("showFile drops a path from the pending set so it is not flushed", async () => {
+    const on = makeContext(true, true);
+    const { hideFile, showFile } =
+      await import("../../src/show-hidden-files.js");
+    await hideFile(on as never, PATH);
+    await showFile(on as never, PATH);
+    // Turn protection OFF: PATH was dropped from the pending set, so nothing flushes.
+    const off = makeContext(false, true);
+    await hideFile(off as never, PATH);
+    expect(on.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
   });
 
   it("isSyncEnabled returns true when the sync plugin is enabled", async () => {

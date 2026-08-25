@@ -63,18 +63,16 @@ describe("src/settings-data.ts", () => {
   });
 });
 
-describe("src/settings-data.ts syncSafeHide (issue #35)", () => {
-  it("defaults syncSafeHide to true", () => {
-    expect(Settings.DEFAULT.syncSafeHide).toBe(true);
+describe("src/settings-data.ts protectSync (GH#35)", () => {
+  it("defaults protectSync to true", () => {
+    expect(Settings.DEFAULT.protectSync).toBe(true);
   });
 
-  it("keeps syncSafeHide false when explicitly set to false", () => {
-    expect(Settings.fix({ syncSafeHide: false }).value.syncSafeHide).toBe(
-      false,
-    );
+  it("keeps protectSync false when explicitly set to false", () => {
+    expect(Settings.fix({ protectSync: false }).value.protectSync).toBe(false);
   });
 
-  it("falls back to true when syncSafeHide is not a boolean", () => {
-    expect(Settings.fix({ syncSafeHide: "x" }).value.syncSafeHide).toBe(true);
+  it("falls back to true when protectSync is not a boolean", () => {
+    expect(Settings.fix({ protectSync: "x" }).value.protectSync).toBe(true);
   });
 });

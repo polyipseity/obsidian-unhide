@@ -45,7 +45,8 @@ declare module "@polyipseity/obsidian-plugin-library" {
 export interface $App {
   /**
    * The internal (built-in) plugins registry. Verified present in Obsidian
-   * 1.13.7. Used to detect whether Obsidian Sync is enabled (issue #35).
+   * 1.13.7. Used to detect whether Obsidian Sync is enabled (GH#35 (obsidian-unhide)).
+   * Reached via nested `revealPrivateFilter` in `isSyncEnabled`.
    */
   readonly internalPlugins: InternalPlugins;
 }
@@ -54,18 +55,24 @@ export interface $App {
  * Private typings for Obsidian's internal plugins registry. Couples to
  * Obsidian 1.13.7.
  */
-export interface InternalPlugins {
-  /** Map from internal plugin id to the plugin instance. */
+export interface $InternalPlugins {
+  /** Map from internal plugin id to the plugin instance. Reached via nested `revealPrivateFilter` in `isSyncEnabled`. */
   readonly plugins: Readonly<Record<string, InternalPlugin>>;
 }
 
 /**
  * Private typings for an Obsidian internal plugin. Couples to Obsidian 1.13.7.
  */
-export interface InternalPlugin {
+export interface $InternalPlugin {
   /** Whether the internal plugin is currently enabled. */
   readonly enabled: boolean;
 }
+
+/** HasPrivate alias of `$InternalPlugins`; used by `$App.internalPlugins` and the nested `revealPrivateFilter` in `isSyncEnabled`. */
+export type InternalPlugins = Private<$InternalPlugins, PrivateKey>;
+
+/** HasPrivate alias of `$InternalPlugin`; used by `$InternalPlugins.plugins` and the nested `revealPrivateFilter` in `isSyncEnabled`. */
+export type InternalPlugin = Private<$InternalPlugin, PrivateKey>;
 
 /**
  * Private typings merged into Obsidian's `DataAdapter` via
