@@ -25,7 +25,6 @@ import type {
   FileExplorerView,
   FileItem,
   Filesystem,
-  InternalPlugin,
   InternalPlugins,
   MobileStat,
   Stat,
@@ -49,8 +48,9 @@ declare module "@polyipseity/obsidian-plugin-library" {
 export interface $App {
   /**
    * The internal (built-in) plugins registry. Verified present in Obsidian
-   * 1.13.7. Used to detect whether Obsidian Sync is enabled (GH#35 (obsidian-unhide)).
-   * Reached via nested `revealPrivateFilter` in `isSyncEnabled`.
+   * 1.13.7. Used to detect whether Obsidian Sync is active (GH#35 (obsidian-unhide)).
+   * Reached via the single `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()`
+   * whitelist in `isSyncActive`.
    */
   readonly internalPlugins: InternalPlugins;
 }
@@ -60,8 +60,8 @@ export interface $App {
  * Obsidian 1.13.7.
  */
 export interface $InternalPlugins {
-  /** Map from internal plugin id to the plugin instance. Reached via nested `revealPrivateFilter` in `isSyncEnabled`. */
-  readonly plugins: Readonly<Record<string, InternalPlugin>>;
+  /** Map from internal plugin id to the plugin instance. The `sync` key is revealed as `$SyncPlugin` via the `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()` whitelist in `isSyncActive`. */
+  readonly plugins: Readonly<Record<string, $SyncPlugin>>;
 }
 
 /**
@@ -70,6 +70,29 @@ export interface $InternalPlugins {
 export interface $InternalPlugin {
   /** Whether the internal plugin is currently enabled. */
   readonly enabled: boolean;
+}
+
+/**
+ * Obsidian Sync connection status. Verified in Obsidian 1.13.7: the Sync
+ * plugin's `getStatus()` returns one of these strings.
+ */
+export type SyncStatus =
+  "uninitialized" | "disconnected" | "error" | "paused" | "syncing" | "synced";
+
+/**
+ * Private typings for Obsidian's Sync internal plugin
+ * (`internalPlugins.plugins.sync`). Couples to Obsidian 1.13.7. `getStatus()`
+ * reports the live Sync connection state; a vault only propagates deletions to
+ * other devices once it is logged in to a sync vault, which `getStatus()` reports
+ * as anything other than `"uninitialized"` or `"disconnected"`.
+ */
+export interface $SyncPlugin {
+  /** Current Sync connection status. Verified in Obsidian 1.13.7. */
+  readonly getStatus: () => SyncStatus;
+  /** Subscribe to Sync events (Obsidian `Events`). */
+  on(name: string, callback: (...args: unknown[]) => unknown): void;
+  /** Unsubscribe from Sync events (Obsidian `Events`). */
+  off(name: string, callback: (...args: unknown[]) => unknown): void;
 }
 
 /**
