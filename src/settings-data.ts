@@ -36,10 +36,10 @@ export namespace LocalSettings {
 
 export interface Settings extends PluginContext.Settings {
   readonly language: Settings.DefaultableLanguage;
+  readonly protectSync: boolean;
   readonly showHiddenFiles: boolean;
   readonly showConfigurationFolder: boolean;
   readonly showingRules: readonly string[];
-  readonly protectSync: boolean;
 
   readonly openChangelogOnUpdate: boolean;
 }
@@ -61,10 +61,10 @@ export namespace Settings {
     language: "",
     noticeTimeout: 5,
     openChangelogOnUpdate: true,
+    protectSync: true,
     showConfigurationFolder: true,
     showHiddenFiles: true,
     showingRules: ["+/", "-/\\.git(?:\\/|$)/u", "-/\\.venv(?:\\/|$)/u"],
-    protectSync: true,
   });
 
   export const DEFAULTABLE_LANGUAGES = deepFreeze([
@@ -84,6 +84,7 @@ export namespace Settings {
       openChangelogOnUpdate: fixTyped(DEFAULT, unc, "openChangelogOnUpdate", [
         "boolean",
       ]),
+      protectSync: fixTyped(DEFAULT, unc, "protectSync", ["boolean"]),
       showConfigurationFolder: fixTyped(
         DEFAULT,
         unc,
@@ -92,7 +93,6 @@ export namespace Settings {
       ),
       showHiddenFiles: fixTyped(DEFAULT, unc, "showHiddenFiles", ["boolean"]),
       showingRules: fixArray(DEFAULT, unc, "showingRules", ["string"]),
-      protectSync: fixTyped(DEFAULT, unc, "protectSync", ["boolean"]),
     });
   }
 }

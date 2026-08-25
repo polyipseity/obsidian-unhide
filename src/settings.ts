@@ -13,8 +13,8 @@ import {
 import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
 import type { UnhidePlugin } from "./main.js";
-import { isSyncEnabled } from "./show-hidden-files.js";
 import { Settings } from "./settings-data.js";
+import { isSyncEnabled } from "./show-hidden-files.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
   public constructor(
@@ -88,24 +88,40 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     this.newAllSettingsWidget(Settings.DEFAULT, Settings.fix);
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
+      const syncEnabled = isSyncEnabled(context);
+      const statusKey = syncEnabled
+        ? settings.value.protectSync
+          ? "settings.protect-sync-status-protected"
+          : "settings.protect-sync-status-unprotected"
+        : "settings.protect-sync-status-unknown";
+      const statusClass = syncEnabled
+        ? settings.value.protectSync
+          ? "unhide-status-protected"
+          : "unhide-status-unprotected"
+        : "unhide-status-unknown";
       setting
-        .setName(i18n.t("settings.show-hidden-files"))
+        .setName(i18n.t("settings.protect-sync"))
         .setDesc(
           createDocumentFragment(settingEl.ownerDocument, (frag) => {
             createChildElement(frag, "span", (ele) => {
               setSanitizedInnerHTML(
                 ele,
-                i18n.t("settings.show-hidden-files-description-HTML"),
+                i18n.t("settings.protect-sync-description"),
               );
+            });
+            createChildElement(frag, "br", () => {});
+            createChildElement(frag, "span", (ele) => {
+              ele.textContent = i18n.t(statusKey);
+              ele.classList.add(statusClass);
             });
           }),
         )
         .addToggle(
           linkSetting(
-            () => settings.value.showHiddenFiles,
+            () => settings.value.protectSync,
             async (value) =>
               settings.mutate((settingsM) => {
-                settingsM.showHiddenFiles = value;
+                settingsM.protectSync = value;
               }),
             () => {
               this.postMutate();
@@ -114,11 +130,11 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
         )
         .addExtraButton(
           resetButton(
-            i18n.t("asset:settings.show-hidden-files-icon"),
+            i18n.t("asset:settings.protect-sync-icon"),
             i18n.t("settings.reset"),
             async () =>
               settings.mutate((settingsM) => {
-                settingsM.showHiddenFiles = Settings.DEFAULT.showHiddenFiles;
+                settingsM.protectSync = Settings.DEFAULT.protectSync;
               }),
             () => {
               this.postMutate();
@@ -126,6 +142,46 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     })
+      .newSetting(containerEl, (setting) => {
+        const { settingEl } = setting;
+        setting
+          .setName(i18n.t("settings.show-hidden-files"))
+          .setDesc(
+            createDocumentFragment(settingEl.ownerDocument, (frag) => {
+              createChildElement(frag, "span", (ele) => {
+                setSanitizedInnerHTML(
+                  ele,
+                  i18n.t("settings.show-hidden-files-description-HTML"),
+                );
+              });
+            }),
+          )
+          .addToggle(
+            linkSetting(
+              () => settings.value.showHiddenFiles,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.showHiddenFiles = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          )
+          .addExtraButton(
+            resetButton(
+              i18n.t("asset:settings.show-hidden-files-icon"),
+              i18n.t("settings.reset"),
+              async () =>
+                settings.mutate((settingsM) => {
+                  settingsM.showHiddenFiles = Settings.DEFAULT.showHiddenFiles;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
+      })
       .newSetting(containerEl, (setting) => {
         setting
           .setName(i18n.t("settings.show-configuration-folder"))
@@ -150,62 +206,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                 settings.mutate((settingsM) => {
                   settingsM.showConfigurationFolder =
                     Settings.DEFAULT.showConfigurationFolder;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
-      .newSetting(containerEl, (setting) => {
-        const { settingEl } = setting;
-        const syncEnabled = isSyncEnabled(context);
-        const statusKey = syncEnabled
-          ? settings.value.protectSync
-            ? "settings.protect-sync-status-protected"
-            : "settings.protect-sync-status-unprotected"
-          : "settings.protect-sync-status-unknown";
-        const statusClass = syncEnabled
-          ? settings.value.protectSync
-            ? "unhide-status-protected"
-            : "unhide-status-unprotected"
-          : "unhide-status-unknown";
-        setting
-          .setName(i18n.t("settings.protect-sync"))
-          .setDesc(
-            createDocumentFragment(settingEl.ownerDocument, (frag) => {
-              createChildElement(frag, "span", (ele) => {
-                setSanitizedInnerHTML(
-                  ele,
-                  i18n.t("settings.protect-sync-description"),
-                );
-              });
-              createChildElement(frag, "br", () => {});
-              createChildElement(frag, "span", (ele) => {
-                ele.textContent = i18n.t(statusKey);
-                ele.classList.add(statusClass);
-              });
-            }),
-          )
-          .addToggle(
-            linkSetting(
-              () => settings.value.protectSync,
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  settingsM.protectSync = value;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          )
-          .addExtraButton(
-            resetButton(
-              i18n.t("asset:settings.protect-sync-icon"),
-              i18n.t("settings.reset"),
-              async () =>
-                settings.mutate((settingsM) => {
-                  settingsM.protectSync = Settings.DEFAULT.protectSync;
                 }),
               () => {
                 this.postMutate();
