@@ -12,6 +12,8 @@ declare module "obsidian" {
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
   interface Filesystem extends Private<$Filesystem, PrivateKey> {}
+  interface InternalPlugin extends Private<$InternalPlugin, PrivateKey> {}
+  interface InternalPlugins extends Private<$InternalPlugins, PrivateKey> {}
   interface MobileStat extends Private<$MobileStat, PrivateKey> {}
   interface TFile extends Private<$TFile, PrivateKey> {}
   interface Vault extends Private<$Vault, PrivateKey> {}
@@ -23,6 +25,8 @@ import type {
   FileExplorerView,
   FileItem,
   Filesystem,
+  InternalPlugin,
+  InternalPlugins,
   MobileStat,
   Stat,
   TFile,
@@ -67,12 +71,6 @@ export interface $InternalPlugin {
   /** Whether the internal plugin is currently enabled. */
   readonly enabled: boolean;
 }
-
-/** HasPrivate alias of `$InternalPlugins`; used by `$App.internalPlugins` and the nested `revealPrivateFilter` in `isSyncEnabled`. */
-export type InternalPlugins = Private<$InternalPlugins, PrivateKey>;
-
-/** HasPrivate alias of `$InternalPlugin`; used by `$InternalPlugins.plugins` and the nested `revealPrivateFilter` in `isSyncEnabled`. */
-export type InternalPlugin = Private<$InternalPlugin, PrivateKey>;
 
 /**
  * Private typings merged into Obsidian's `DataAdapter` via
