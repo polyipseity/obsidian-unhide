@@ -157,6 +157,8 @@ See [`assets/locales/README.md`](assets/locales/README.md).
 
 We hope that there will never be any security vulnerabilities, but unfortunately it does happen. Please [report](#reporting-a-vulnerability) them!
 
+- Data-loss risk in synced vaults: see [⚠️ Sync / data-loss warning](#️-sync--data-loss-warning) and [issue #35](https://github.com/polyipseity/obsidian-unhide/issues/35). The `syncSafeHide` setting (default ON) mitigates it best-effort but is not a guarantee.
+
 ### Supported versions
 
 | Version  | Supported |
