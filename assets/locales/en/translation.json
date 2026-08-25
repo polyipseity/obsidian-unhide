@@ -27,6 +27,9 @@
     "toggle": "toggle"
   },
   "name": "Unhide",
+  "notices": {
+    "sync-data-loss-warning": "Sync is on. Hiding is skipped to avoid deleting files on other devices."
+  },
   "settings": {
     "documentation": "$t(generic.documentation, capitalize)",
     "documentations": {
@@ -36,20 +39,17 @@
     },
     "interface": "Interface",
     "open-changelog-on-update": "$t(generic.open, capitalize) $t(generic.documentations.changelog) on update",
+    "protect-sync": "Protect Obsidian Sync",
+    "protect-sync-description": "When on and Obsidian Sync is detected, hiding files is skipped to avoid deleting them on other devices. Best-effort; may still have unknown bugs with Sync.",
+    "protect-sync-status-protected": "Sync detected, protection on",
+    "protect-sync-status-unknown": "Sync not enabled",
+    "protect-sync-status-unprotected": "Sync detected, protection off",
     "show-configuration-folder": "$t(generic.show, capitalize) configuration folder",
     "show-configuration-folder-description": "Overrides \"$t(settings.showing-rules)\".",
     "show-hidden-files": "$t(generic.show, capitalize) $t(generic.hidden-file_other)",
     "show-hidden-files-description-HTML": "Please also enable <code>Files & links > Detect all file extensions</code> to work properly. Toggleable from the command palette.",
     "showing-rules": "$t(generic.show_gerund, capitalize) $t(generic.rule_other)",
     "showing-rules-description": "$t(generic.list-description, capitalize)",
-    "showing-rules-edit": "$t(generic.edit, capitalize)",
-    "protect-sync": "Protect Obsidian Sync",
-    "protect-sync-description": "When on and Obsidian Sync is detected, hiding files is skipped to avoid deleting them on other devices. Best-effort; may still have unknown bugs with Sync.",
-    "protect-sync-status-protected": "Sync detected, protection on",
-    "protect-sync-status-unprotected": "Sync detected, protection off",
-    "protect-sync-status-unknown": "Sync not enabled"
-  },
-  "notices": {
-    "sync-data-loss-warning": "Sync is on. Hiding is skipped to avoid deleting files on other devices."
+    "showing-rules-edit": "$t(generic.edit, capitalize)"
   }
 }
