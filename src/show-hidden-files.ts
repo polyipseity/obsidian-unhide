@@ -15,6 +15,7 @@ import { around } from "monkey-around";
 import type { Command, FileExplorerView } from "obsidian";
 import type { MarkOptional } from "ts-essentials";
 import type {
+  $App,
   $DataAdapter,
   $Element,
   $FileExplorerView,
@@ -565,6 +566,31 @@ async function showFile(context: PluginContext, path: string): Promise<void> {
  * Mitigation: a later phase adds a Sync-safe setting (enabled by default) that, when Obsidian Sync
  * is detected, makes this function a no-op so the destructive `reconcileDeletion` call is skipped.
  */
+
+/**
+ * Reports whether Obsidian Sync is currently enabled.
+ *
+ * Reads the `App.internalPlugins.plugins.sync.enabled` path via the `$App`
+ * private augmentation in `src/@types/obsidian.ts` (the `internalPlugins`
+ * member is not in `obsidian.d.ts` for the pinned Obsidian version). The
+ * private member is reached through `revealPrivateFilter`, so a type change
+ * surfaces as a compile error rather than a runtime crash. The fallback
+ * returns `false` when the private API is unavailable or throws, degrading to
+ * "not enabled" instead of propagating an error.
+ *
+ * Data-loss risk (issue #35): when Sync is enabled, `hideFile`'s destructive
+ * `reconcileDeletion` would propagate deletions to other synced devices. This
+ * helper lets the Sync-safe setting gate that call.
+ */
+export function isSyncEnabled(context: PluginContext): boolean {
+  return revealPrivateFilter<[$App]>()(
+    context,
+    [context.app],
+    (app0) => app0.internalPlugins.plugins.sync?.enabled === true,
+    () => false,
+  );
+}
+
 async function hideFile(context: PluginContext, path: string): Promise<void> {
   await revealPrivateAsyncFilter<[$DataAdapter]>()(
     context,

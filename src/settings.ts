@@ -13,6 +13,7 @@ import {
 import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
 import type { UnhidePlugin } from "./main.js";
+import { isSyncEnabled } from "./show-hidden-files.js";
 import { Settings } from "./settings-data.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
@@ -149,6 +150,53 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                 settings.mutate((settingsM) => {
                   settingsM.showConfigurationFolder =
                     Settings.DEFAULT.showConfigurationFolder;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
+      })
+      .newSetting(containerEl, (setting) => {
+        const { settingEl } = setting;
+        const active = settings.value.syncSafeHide && isSyncEnabled(context);
+        setting
+          .setName(i18n.t("settings.sync-safe-hide"))
+          .setDesc(
+            createDocumentFragment(settingEl.ownerDocument, (frag) => {
+              createChildElement(frag, "span", (ele) => {
+                setSanitizedInnerHTML(
+                  ele,
+                  i18n.t("settings.sync-safe-hide-description"),
+                );
+              });
+              createChildElement(frag, "br", () => {});
+              createChildElement(frag, "span", (ele) => {
+                ele.textContent = active
+                  ? i18n.t("settings.sync-safe-hide-active")
+                  : i18n.t("settings.sync-safe-hide-inactive");
+              });
+            }),
+          )
+          .addToggle(
+            linkSetting(
+              () => settings.value.syncSafeHide,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.syncSafeHide = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          )
+          .addExtraButton(
+            resetButton(
+              i18n.t("asset:settings.sync-safe-hide-icon"),
+              i18n.t("settings.reset"),
+              async () =>
+                settings.mutate((settingsM) => {
+                  settingsM.syncSafeHide = Settings.DEFAULT.syncSafeHide;
                 }),
               () => {
                 this.postMutate();

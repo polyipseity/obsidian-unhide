@@ -7,6 +7,7 @@ declare module "obsidian" {
     readonly fundingUrl?: string | Record<string, string>;
   }
 
+  interface App extends Private<$App, PrivateKey> {}
   interface DataAdapter extends Private<$DataAdapter, PrivateKey> {}
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
@@ -35,6 +36,35 @@ declare module "@polyipseity/obsidian-plugin-library" {
   interface PrivateKeys {
     readonly [PRIVATE_KEY]: never;
   }
+}
+
+/**
+ * Private typings merged into Obsidian's `App` via `Private<$App, PrivateKey>`.
+ * Couples to Obsidian 1.13.7.
+ */
+export interface $App {
+  /**
+   * The internal (built-in) plugins registry. Verified present in Obsidian
+   * 1.13.7. Used to detect whether Obsidian Sync is enabled (issue #35).
+   */
+  readonly internalPlugins: InternalPlugins;
+}
+
+/**
+ * Private typings for Obsidian's internal plugins registry. Couples to
+ * Obsidian 1.13.7.
+ */
+export interface InternalPlugins {
+  /** Map from internal plugin id to the plugin instance. */
+  readonly plugins: Readonly<Record<string, InternalPlugin>>;
+}
+
+/**
+ * Private typings for an Obsidian internal plugin. Couples to Obsidian 1.13.7.
+ */
+export interface InternalPlugin {
+  /** Whether the internal plugin is currently enabled. */
+  readonly enabled: boolean;
 }
 
 /**

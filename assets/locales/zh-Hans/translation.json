@@ -24,6 +24,9 @@
     "toggle": "切换"
   },
   "name": "Unhide",
+  "notices": {
+    "sync-data-loss-warning": "Sync is enabled — hiding is disabled to prevent data loss on other devices."
+  },
   "settings": {
     "documentation": "$t(generic.documentation)",
     "documentations": {
@@ -39,6 +42,10 @@
     "show-hidden-files-description-HTML": "请也启用<code>文件与链接 > 检测所有类型文件</code>以正常工作。可从命令面板切换。",
     "showing-rules": "$t(generic.show)$t(generic.rule)",
     "showing-rules-description": "$t(generic.list-description)",
-    "showing-rules-edit": "$t(generic.edit)"
+    "showing-rules-edit": "$t(generic.edit)",
+    "sync-safe-hide": "Safe hide in synced vaults",
+    "sync-safe-hide-active": "Active — Obsidian Sync detected",
+    "sync-safe-hide-description": "When enabled and Obsidian Sync is detected, hiding files becomes a no-op to avoid data loss. Best-effort; may still have unknown bugs with Sync.",
+    "sync-safe-hide-inactive": "Inactive — setting off or Sync not detected"
   }
 }

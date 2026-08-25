@@ -39,6 +39,7 @@ export interface Settings extends PluginContext.Settings {
   readonly showHiddenFiles: boolean;
   readonly showConfigurationFolder: boolean;
   readonly showingRules: readonly string[];
+  readonly syncSafeHide: boolean;
 
   readonly openChangelogOnUpdate: boolean;
 }
@@ -63,6 +64,7 @@ export namespace Settings {
     showConfigurationFolder: true,
     showHiddenFiles: true,
     showingRules: ["+/", "-/\\.git(?:\\/|$)/u", "-/\\.venv(?:\\/|$)/u"],
+    syncSafeHide: true,
   });
 
   export const DEFAULTABLE_LANGUAGES = deepFreeze([
@@ -90,6 +92,7 @@ export namespace Settings {
       ),
       showHiddenFiles: fixTyped(DEFAULT, unc, "showHiddenFiles", ["boolean"]),
       showingRules: fixArray(DEFAULT, unc, "showingRules", ["string"]),
+      syncSafeHide: fixTyped(DEFAULT, unc, "syncSafeHide", ["boolean"]),
     });
   }
 }
