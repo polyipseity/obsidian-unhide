@@ -9,6 +9,7 @@
  * (never an absent key, which would install a throwing stub via monkey-around).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { SyncStatus } from "../../src/@types/obsidian.js";
 
 type RenameMethod = "saveRename" | "acceptRename" | "finishRename";
 
@@ -105,13 +106,13 @@ describe("src/show-hidden-files.ts rename-method detection", () => {
 /**
  * Unit tests for the Sync-safe guard (GH#35 (obsidian-unhide)).
  *
- * `hideFile`/`showFile`/`isSyncEnabled` are driven through a fake `context` shaped like
- * `UnhidePlugin`: `app.internalPlugins.plugins.sync.enabled` controls Sync detection, and
- * `settings.value.protectSync` toggles the guard. The adapter is a fake whose `reconcileDeletion`
- * is a spy and `getRealPath` is identity. `revealPrivateFilter`/`revealPrivateAsyncFilter` are
- * mocked (see top of file) to forward the private member into the callback, so `hideFile` reaches
- * `adapter.reconcileDeletion` and `isSyncEnabled` reads the sync plugin state. `notice` is mocked
- * so we can assert the transition warning.
+ * `hideFile`/`showFile`/`isSyncActive`/`reevaluateProtection` are driven through a fake `context`
+ * shaped like `UnhidePlugin`: `app.internalPlugins.plugins.sync.getStatus()` reports the Sync
+ * connection status, and `settings.value.protectSync` toggles the guard. The adapter is a fake whose
+ * `reconcileDeletion` is a spy and `getRealPath` is identity. `revealPrivateFilter`/
+ * `revealPrivateAsyncFilter` are mocked (see top of file) to forward the private member into the
+ * callback, so `hideFile` reaches `adapter.reconcileDeletion` and `isSyncActive` reads the sync
+ * plugin status. `notice` is mocked so we can assert the transition warning.
  *
  * `protectedHiddenPaths` and `lastProtectionActive` are module-scope state shared across calls and
  * tests. Because `lastProtectionActive` is module-scope, each test resets it by re-importing the
@@ -124,7 +125,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
   interface FakeContext {
     app: {
       internalPlugins: {
-        plugins: { sync?: { enabled: boolean } };
+        plugins: { sync?: { getStatus: () => SyncStatus } };
       };
       vault: { adapter: FakeAdapter };
     };
@@ -139,7 +140,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
 
   function makeContext(
     protectSync: boolean,
-    syncEnabled?: boolean,
+    syncStatus?: SyncStatus,
   ): FakeContext {
     const adapter: FakeAdapter = {
       reconcileDeletion: vi.fn(),
@@ -150,9 +151,9 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
       app: {
         internalPlugins: {
           plugins: {
-            ...(syncEnabled === undefined
+            ...(syncStatus === undefined
               ? {}
-              : { sync: { enabled: syncEnabled } }),
+              : { sync: { getStatus: () => syncStatus } }),
           },
         },
         vault: { adapter },
@@ -169,7 +170,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
   });
 
   it("hideFile calls reconcileDeletion when protectSync is OFF", async () => {
-    const context = makeContext(false, true);
+    const context = makeContext(false, "synced");
     const { hideFile } = await import("../../src/show-hidden-files.js");
     await hideFile(context as never, PATH);
     expect(
@@ -177,15 +178,15 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
     ).toHaveBeenCalledExactlyOnceWith(PATH, PATH);
   });
 
-  it("hideFile does NOT call reconcileDeletion when ON and Sync enabled", async () => {
-    const context = makeContext(true, true);
+  it("hideFile does NOT call reconcileDeletion when ON and Sync active", async () => {
+    const context = makeContext(true, "synced");
     const { hideFile } = await import("../../src/show-hidden-files.js");
     await hideFile(context as never, PATH);
     expect(context.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
   });
 
-  it("hideFile DOES call reconcileDeletion when ON but Sync not detected", async () => {
-    const context = makeContext(true, false);
+  it("hideFile DOES call reconcileDeletion when ON but Sync not active", async () => {
+    const context = makeContext(true, "disconnected");
     const { hideFile } = await import("../../src/show-hidden-files.js");
     await hideFile(context as never, PATH);
     expect(
@@ -194,7 +195,7 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
   });
 
   it("showFile always reconciles the file back into the index", async () => {
-    const context = makeContext(true, true);
+    const context = makeContext(true, "synced");
     const { showFile } = await import("../../src/show-hidden-files.js");
     await showFile(context as never, PATH);
     expect(
@@ -205,30 +206,30 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
 
   it("shows the notice only on the transition to active protection, not per blocked file", async () => {
     const { notice } = await import("@polyipseity/obsidian-plugin-library");
-    // First hide with protection OFF establishes the inactive baseline.
-    const off = makeContext(false, true);
-    const { hideFile } = await import("../../src/show-hidden-files.js");
-    await hideFile(off as never, PATH);
+    const { reevaluateProtection } =
+      await import("../../src/show-hidden-files.js");
+    // Establish inactive baseline (protection off).
+    reevaluateProtection(makeContext(false, "synced") as never);
     expect(notice).not.toHaveBeenCalled();
-    // Now turn protection ON and hide many files: notice fires once on transition.
-    const on = makeContext(true, true);
-    await hideFile(on as never, PATH);
-    await hideFile(on as never, PATH2);
-    await hideFile(on as never, PATH);
+    // Transition to active (protection on + Sync active): notice fires once.
+    const on = makeContext(true, "synced");
+    reevaluateProtection(on as never);
+    reevaluateProtection(on as never);
     expect(notice).toHaveBeenCalledTimes(1);
   });
 
   it("flushes all pending paths when protection turns off", async () => {
     const { notice } = await import("@polyipseity/obsidian-plugin-library");
-    const on = makeContext(true, true);
-    const { hideFile } = await import("../../src/show-hidden-files.js");
+    const { hideFile, reevaluateProtection } =
+      await import("../../src/show-hidden-files.js");
+    const on = makeContext(true, "synced");
     await hideFile(on as never, PATH);
     await hideFile(on as never, PATH2);
     expect(on.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
-    // Turn protection OFF via a transition (hide with protectSync false) -> flush runs on the
-    // context that triggered the transition.
-    const off = makeContext(false, true);
-    await hideFile(off as never, PATH);
+    // Activate protection, then deactivate -> flush runs on the context that triggered it.
+    reevaluateProtection(on as never);
+    const off = makeContext(false, "synced");
+    reevaluateProtection(off as never);
     expect(off.app.vault.adapter.reconcileDeletion).toHaveBeenCalledWith(
       PATH,
       PATH,
@@ -237,37 +238,38 @@ describe("src/show-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", (
       PATH2,
       PATH2,
     );
-    // Notice fired once on the inactive->active transition (step 2), not on flush.
+    // Notice fired once on the inactive->active transition, not on flush.
     expect(notice).toHaveBeenCalledTimes(1);
   });
 
   it("showFile drops a path from the pending set so it is not flushed", async () => {
-    const on = makeContext(true, true);
-    const { hideFile, showFile } =
+    const { hideFile, showFile, reevaluateProtection } =
       await import("../../src/show-hidden-files.js");
+    const on = makeContext(true, "synced");
     await hideFile(on as never, PATH);
     await showFile(on as never, PATH);
-    // Turn protection OFF: PATH was dropped from the pending set, so nothing flushes.
-    const off = makeContext(false, true);
-    await hideFile(off as never, PATH);
+    // Activate then deactivate: PATH was dropped from the pending set, so nothing flushes.
+    reevaluateProtection(on as never);
+    const off = makeContext(false, "synced");
+    reevaluateProtection(off as never);
     expect(on.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
   });
 
-  it("isSyncEnabled returns true when the sync plugin is enabled", async () => {
-    const context = makeContext(true, true);
-    const { isSyncEnabled } = await import("../../src/show-hidden-files.js");
-    expect(isSyncEnabled(context as never)).toBe(true);
+  it("isSyncActive returns true when Sync is active", async () => {
+    const context = makeContext(true, "synced");
+    const { isSyncActive } = await import("../../src/show-hidden-files.js");
+    expect(isSyncActive(context as never)).toBe(true);
   });
 
-  it("isSyncEnabled returns false when the sync plugin is disabled", async () => {
-    const context = makeContext(true, false);
-    const { isSyncEnabled } = await import("../../src/show-hidden-files.js");
-    expect(isSyncEnabled(context as never)).toBe(false);
+  it("isSyncActive returns false when Sync is not active", async () => {
+    const context = makeContext(true, "disconnected");
+    const { isSyncActive } = await import("../../src/show-hidden-files.js");
+    expect(isSyncActive(context as never)).toBe(false);
   });
 
-  it("isSyncEnabled falls back to false when the sync plugin is absent", async () => {
+  it("isSyncActive falls back to false when the sync plugin is absent", async () => {
     const context = makeContext(true);
-    const { isSyncEnabled } = await import("../../src/show-hidden-files.js");
-    expect(isSyncEnabled(context as never)).toBe(false);
+    const { isSyncActive } = await import("../../src/show-hidden-files.js");
+    expect(isSyncActive(context as never)).toBe(false);
   });
 });
