@@ -62,3 +62,19 @@ describe("src/settings-data.ts", () => {
     );
   });
 });
+
+describe("src/settings-data.ts syncSafeHide (issue #35)", () => {
+  it("defaults syncSafeHide to true", () => {
+    expect(Settings.DEFAULT.syncSafeHide).toBe(true);
+  });
+
+  it("keeps syncSafeHide false when explicitly set to false", () => {
+    expect(Settings.fix({ syncSafeHide: false }).value.syncSafeHide).toBe(
+      false,
+    );
+  });
+
+  it("falls back to true when syncSafeHide is not a boolean", () => {
+    expect(Settings.fix({ syncSafeHide: "x" }).value.syncSafeHide).toBe(true);
+  });
+});

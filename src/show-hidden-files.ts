@@ -507,7 +507,10 @@ function addCommands(context: UnhidePlugin): void {
   }
 }
 
-async function showFile(context: PluginContext, path: string): Promise<void> {
+export async function showFile(
+  context: PluginContext,
+  path: string,
+): Promise<void> {
   await revealPrivateAsyncFilter<[$DataAdapter, $Filesystem, $MobileStat]>()(
     context,
     [context.app.vault.adapter],
@@ -591,7 +594,10 @@ export function isSyncEnabled(context: PluginContext): boolean {
   );
 }
 
-async function hideFile(context: UnhidePlugin, path: string): Promise<void> {
+export async function hideFile(
+  context: UnhidePlugin,
+  path: string,
+): Promise<void> {
   // Sync-safe guard (issue #35): when the setting is on and Sync is detected, skip the destructive
   // `reconcileDeletion` so deletions are not propagated to other synced devices. `hiddenPaths`
   // bookkeeping stays consistent because the caller in `patchVault` still adds/removes the path.

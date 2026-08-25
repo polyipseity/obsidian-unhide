@@ -64,4 +64,26 @@ describe("PluginLocales", () => {
     const zhHansRes = await zhHans();
     expect(typeof zhHansRes).toBe("object");
   });
+
+  it("declares the issue #35 sync-safe-hide keys in en translation", async () => {
+    const enRes = PluginLocales.RESOURCES[PluginLocales.DEFAULT_LANGUAGE];
+    const translation = await enRes[PluginLocales.DEFAULT_NAMESPACE]();
+    const settings = translation.settings as Record<string, unknown>;
+    const notices = translation.notices as Record<string, unknown>;
+
+    for (const key of [
+      "sync-safe-hide",
+      "sync-safe-hide-description",
+      "sync-safe-hide-active",
+      "sync-safe-hide-inactive",
+    ] as const) {
+      expect(typeof settings[key]).toBe("string");
+      expect((settings[key] as string).length).toBeGreaterThan(0);
+    }
+
+    expect(typeof notices["sync-data-loss-warning"]).toBe("string");
+    expect(
+      (notices["sync-data-loss-warning"] as string).length,
+    ).toBeGreaterThan(0);
+  });
 });

@@ -35,8 +35,21 @@ vi.mock("@polyipseity/obsidian-plugin-library", async (importOriginal) => {
         args: unknown[],
         func: (...funcArgs: unknown[]) => unknown,
         fallback: (error: unknown) => unknown,
-      ): unknown =>
-        func(args[0]) ?? fallback(new Error("no private")),
+      ): unknown => {
+        try {
+          return func(...args) ?? fallback(new Error("no private"));
+        } catch (error: unknown) {
+          return fallback(error);
+        }
+      },
+    revealPrivateAsyncFilter:
+      () =>
+      async (
+        _context: unknown,
+        args: unknown[],
+        func: (...funcArgs: unknown[]) => unknown,
+      ): Promise<unknown> =>
+        func(...args),
   };
   return mock;
 });
@@ -86,4 +99,116 @@ describe("src/show-hidden-files.ts rename-method detection", () => {
       expect(capturedKeys).toEqual([present]);
     });
   }
+});
+
+/**
+ * Unit tests for the Sync-safe guard (issue #35).
+ *
+ * `hideFile`/`showFile`/`isSyncEnabled` are driven through a fake `context` shaped like
+ * `UnhidePlugin`: `app.internalPlugins.plugins.sync.enabled` controls Sync detection, and
+ * `settings.value.syncSafeHide` toggles the guard. The adapter is a fake whose `reconcileDeletion`
+ * is a spy and `getRealPath` is identity. `revealPrivateFilter`/`revealPrivateAsyncFilter` are
+ * mocked (see top of file) to forward the private member into the callback, so `hideFile` reaches
+ * `adapter.reconcileDeletion` and `isSyncEnabled` reads the sync plugin state.
+ */
+describe("src/show-hidden-files.ts Sync-safe guard (issue #35)", () => {
+  const PATH = ".hidden/file.md";
+
+  interface FakeContext {
+    app: {
+      internalPlugins: {
+        plugins: { sync?: { enabled: boolean } };
+      };
+      vault: { adapter: FakeAdapter };
+    };
+    settings: { value: { syncSafeHide: boolean } };
+    register: () => void;
+  }
+  interface FakeAdapter {
+    reconcileDeletion: ReturnType<typeof vi.fn>;
+    reconcileFileInternal: ReturnType<typeof vi.fn>;
+    getRealPath: (path: string) => string;
+  }
+
+  function makeContext(
+    syncSafeHide: boolean,
+    syncEnabled?: boolean,
+  ): FakeContext {
+    const adapter: FakeAdapter = {
+      reconcileDeletion: vi.fn(),
+      reconcileFileInternal: vi.fn(),
+      getRealPath: (path: string): string => path,
+    };
+    return {
+      app: {
+        internalPlugins: {
+          plugins: {
+            ...(syncEnabled === undefined
+              ? {}
+              : { sync: { enabled: syncEnabled } }),
+          },
+        },
+        vault: { adapter },
+      },
+      settings: { value: { syncSafeHide } },
+      register: vi.fn(),
+    };
+  }
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("hideFile calls reconcileDeletion when syncSafeHide is OFF", async () => {
+    const context = makeContext(false, true);
+    const { hideFile } = await import("../../src/show-hidden-files.js");
+    await hideFile(context as never, PATH);
+    expect(
+      context.app.vault.adapter.reconcileDeletion,
+    ).toHaveBeenCalledExactlyOnceWith(PATH, PATH);
+  });
+
+  it("hideFile does NOT call reconcileDeletion when ON and Sync enabled", async () => {
+    const context = makeContext(true, true);
+    const { hideFile } = await import("../../src/show-hidden-files.js");
+    await hideFile(context as never, PATH);
+    expect(context.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
+  });
+
+  it("hideFile DOES call reconcileDeletion when ON but Sync not detected", async () => {
+    const context = makeContext(true, false);
+    const { hideFile } = await import("../../src/show-hidden-files.js");
+    await hideFile(context as never, PATH);
+    expect(
+      context.app.vault.adapter.reconcileDeletion,
+    ).toHaveBeenCalledExactlyOnceWith(PATH, PATH);
+  });
+
+  it("showFile always reconciles the file back into the index", async () => {
+    const context = makeContext(true, true);
+    const { showFile } = await import("../../src/show-hidden-files.js");
+    await showFile(context as never, PATH);
+    expect(
+      context.app.vault.adapter.reconcileFileInternal,
+    ).toHaveBeenCalledExactlyOnceWith(PATH, PATH);
+    expect(context.app.vault.adapter.reconcileDeletion).not.toHaveBeenCalled();
+  });
+
+  it("isSyncEnabled returns true when the sync plugin is enabled", async () => {
+    const context = makeContext(true, true);
+    const { isSyncEnabled } = await import("../../src/show-hidden-files.js");
+    expect(isSyncEnabled(context as never)).toBe(true);
+  });
+
+  it("isSyncEnabled returns false when the sync plugin is disabled", async () => {
+    const context = makeContext(true, false);
+    const { isSyncEnabled } = await import("../../src/show-hidden-files.js");
+    expect(isSyncEnabled(context as never)).toBe(false);
+  });
+
+  it("isSyncEnabled falls back to false when the sync plugin is absent", async () => {
+    const context = makeContext(true);
+    const { isSyncEnabled } = await import("../../src/show-hidden-files.js");
+    expect(isSyncEnabled(context as never)).toBe(false);
+  });
 });
