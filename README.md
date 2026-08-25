@@ -20,19 +20,7 @@ This file is automatically opened on first install. You can reopen it in setting
 
 ## ⚠️ Sync / data-loss warning
 
-> __Read this before using the plugin in a vault that uses Obsidian Sync.__
-
-The plugin shows hidden files by adding them to Obsidian's file index, and hides them by reconciling them out of the index. Hiding uses `DataAdapter.reconcileDeletion`, which emits the same deletion events Obsidian uses for real deletions. __Obsidian Sync propagates deletions to other synced devices, and Sync is not a backup__ — it only keeps version history for recovery.
-
-In a __synced vault__, the following can emit delete events that Sync propagates, causing hidden files to be deleted on other synced devices:
-
-- Disabling or unloading the plugin.
-- Toggling hidden files off.
-- Changing the showing/hiding rules.
-
-__Mitigation (best-effort).__ The plugin provides a setting (enabled by default) that, when Obsidian Sync is detected, makes hiding a no-op so the destructive `reconcileDeletion` calls are skipped. This avoids the data-loss path, but __degrades some functionality__ — for example, switching a file from shown to hidden will not actually hide it while Sync is active. Showing files remains non-destructive and is always enabled.
-
-__This protection is detection-based and may still have unknown bugs with Obsidian Sync.__ Do not rely on it as a guarantee. Sync keeps version history for recovery. __Recommendation: do not use this plugin in synced vaults, or make sure you understand the risk.__ See [§ Usage](#usage) for the related setting.
+> __Read this before using the plugin in a vault that uses Obsidian Sync.__ Hiding a file emits the same deletion events Obsidian Sync propagates to other devices, and Sync is not a backup. The `protectSync` setting (default ON) makes hiding a no-op while Sync is detected, but it is detection-based and not a guarantee — see [GH#35](https://github.com/polyipseity/obsidian-unhide/issues/35).
 
 ## Installation
 
@@ -157,7 +145,7 @@ See [`assets/locales/README.md`](assets/locales/README.md).
 
 We hope that there will never be any security vulnerabilities, but unfortunately it does happen. Please [report](#reporting-a-vulnerability) them!
 
-- Data-loss risk in synced vaults: see [⚠️ Sync / data-loss warning](#️-sync--data-loss-warning) and [issue #35](https://github.com/polyipseity/obsidian-unhide/issues/35). The `syncSafeHide` setting (default ON) mitigates it best-effort but is not a guarantee.
+- Data-loss risk in synced vaults: see [⚠️ Sync / data-loss warning](#️-sync--data-loss-warning) and [GH#35](https://github.com/polyipseity/obsidian-unhide/issues/35). The `protectSync` setting (default ON) defers hiding while Sync is detected and flushes the deferred paths when protection turns off, but it is detection-based and not a guarantee.
 
 ### Supported versions
 
