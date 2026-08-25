@@ -18,6 +18,22 @@ This file is automatically opened on first install. You can reopen it in setting
 - Toggle visibility of hidden files.
 - Interact with hidden files normally like normal files.
 
+## ⚠️ Sync / data-loss warning
+
+> __Read this before using the plugin in a vault that uses Obsidian Sync.__
+
+The plugin shows hidden files by adding them to Obsidian's file index, and hides them by reconciling them out of the index. Hiding uses `DataAdapter.reconcileDeletion`, which emits the same deletion events Obsidian uses for real deletions. __Obsidian Sync propagates deletions to other synced devices, and Sync is not a backup__ — it only keeps version history for recovery.
+
+In a __synced vault__, the following can emit delete events that Sync propagates, causing hidden files to be deleted on other synced devices:
+
+- Disabling or unloading the plugin.
+- Toggling hidden files off.
+- Changing the showing/hiding rules.
+
+__Mitigation (best-effort).__ The plugin provides a setting (enabled by default) that, when Obsidian Sync is detected, makes hiding a no-op so the destructive `reconcileDeletion` calls are skipped. This avoids the data-loss path, but __degrades some functionality__ — for example, switching a file from shown to hidden will not actually hide it while Sync is active. Showing files remains non-destructive and is always enabled.
+
+__This protection is detection-based and may still have unknown bugs with Obsidian Sync.__ Do not rely on it as a guarantee. Sync keeps version history for recovery. __Recommendation: do not use this plugin in synced vaults, or make sure you understand the risk.__ See [§ Usage](#usage) for the related setting.
+
 ## Installation
 
 1. Install plugin.
@@ -38,6 +54,7 @@ This file is automatically opened on first install. You can reopen it in setting
 
 ## Usage
 
+- __If your vault uses Obsidian Sync, read the [⚠️ Sync / data-loss warning](#️-sync--data-loss-warning) first.__ Hiding files can emit deletion events that Sync propagates to other devices.
 - Before enabling the plugin, check if your vault contains dot folders with a lot of files \(e.g. 100+ files\). If yes, Obsidian will likely freeze \(for a long time\) when you enable the plugin, as Obsidian scans all files in the dot folders.
 
     By default, the plugin excludes folders and files named `.git` or `.venv` at any level of the vault file tree. If your dot folders are excluded by the defaults, you can simply enable the plugin without freezing Obsidian. The defaults can be edited in plugin settings.
