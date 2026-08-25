@@ -6,6 +6,10 @@
 
 __[Repository][repository] · [Changelog][changelog] · [Community plugin][community plugin] · [Related][related] · [Features](#features) · [Installation](#installation) · [Usage](#usage) · [Contributing](#contributing) · [Security](#security)__
 
+> __For Obsidian Sync users__
+>
+> Hidden files might be lost when using Obsidian Sync (e.g. [GH#35](https://github.com/polyipseity/obsidian-unhide/issues/35)). The "Protect Obsidian Sync" setting is a best effort setting to avoid this. There might be other unknown bugs that also cause data loss.
+
 ![Trailer][trailer]
 
 For first time users, read the [installation](#installation) section first!
@@ -17,10 +21,6 @@ This file is automatically opened on first install. You can reopen it in setting
 - Show files that are forcefully hidden in vanilla Obsidian.
 - Toggle visibility of hidden files.
 - Interact with hidden files normally like normal files.
-
-## ⚠️ Sync / data-loss warning
-
-> __Read this before using the plugin in a vault that uses Obsidian Sync.__ Hiding a file emits the same deletion events Obsidian Sync propagates to other devices, and Sync is not a backup. The `protectSync` setting (default ON) makes hiding a no-op while Sync is detected, but it is detection-based and not a guarantee — see [GH#35](https://github.com/polyipseity/obsidian-unhide/issues/35).
 
 ## Installation
 
@@ -42,7 +42,6 @@ This file is automatically opened on first install. You can reopen it in setting
 
 ## Usage
 
-- __If your vault uses Obsidian Sync, read the [⚠️ Sync / data-loss warning](#️-sync--data-loss-warning) first.__ Hiding files can emit deletion events that Sync propagates to other devices.
 - Before enabling the plugin, check if your vault contains dot folders with a lot of files \(e.g. 100+ files\). If yes, Obsidian will likely freeze \(for a long time\) when you enable the plugin, as Obsidian scans all files in the dot folders.
 
     By default, the plugin excludes folders and files named `.git` or `.venv` at any level of the vault file tree. If your dot folders are excluded by the defaults, you can simply enable the plugin without freezing Obsidian. The defaults can be edited in plugin settings.
@@ -144,8 +143,6 @@ See [`assets/locales/README.md`](assets/locales/README.md).
 ## Security
 
 We hope that there will never be any security vulnerabilities, but unfortunately it does happen. Please [report](#reporting-a-vulnerability) them!
-
-- Data-loss risk in synced vaults: see [⚠️ Sync / data-loss warning](#️-sync--data-loss-warning) and [GH#35](https://github.com/polyipseity/obsidian-unhide/issues/35). The `protectSync` setting (default ON) defers hiding while Sync is detected and flushes the deferred paths when protection turns off, but it is detection-based and not a guarantee.
 
 ### Supported versions
 
