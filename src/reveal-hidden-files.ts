@@ -52,7 +52,7 @@ import {
  * Sync / data-loss risk (GH#35 (obsidian-unhide)): `reconcileDeletion(force=true)` removes the entry
  * from the adapter `files` index and triggers `file-removed`/`folder-removed`, which the Vault handler
  * turns into a vault `"delete"` event. Obsidian Sync subscribes to `"delete"` and propagates deletions
- * to other synced devices (Sync is not a backup — only version history is kept). The destructive
+ * to other synced devices. The destructive
  * `reconcileDeletion` calls originate from `hideFile`/`hideAll` (plugin unload, toggling hidden files
  * off, or changing rules), not from this observer patch, which only forwards genuine deletions. The
  * `protectSync` setting (enabled by default) defers `hideFile` while Obsidian Sync is detected, so
@@ -274,7 +274,7 @@ export async function showFile(
  * Data-loss risk (GH#35 (obsidian-unhide)): Obsidian Sync subscribes to vault `"delete"` events and
  * propagates deletions to other synced devices. Because hiding emits the same deletion events Obsidian
  * uses for real deletions, hiding a file in a synced vault can cause it to be deleted on other devices.
- * Sync is not a backup — it only keeps version history for recovery. This is the data-loss path
+ * This is the data-loss path
  * reported in GH#35 (triggered by plugin unload, toggling hidden files off, or changing rules).
  *
  * Mitigation: the `protectSync` setting (enabled by default) defers `hideFile`'s `reconcileDeletion`

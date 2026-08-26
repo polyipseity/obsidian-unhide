@@ -76,7 +76,7 @@ describe("PluginLocales", () => {
       "protect-sync-description",
       "protect-sync-status-protected",
       "protect-sync-status-unprotected",
-      "protect-sync-status-unknown",
+      "protect-sync-status-not-detected",
     ] as const) {
       expect(typeof settings[key]).toBe("string");
       expect((settings[key] as string).length).toBeGreaterThan(0);

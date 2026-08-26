@@ -93,7 +93,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       const statusKey = protectedNow
         ? "settings.protect-sync-status-protected"
         : settings.value.protectSync
-          ? "settings.protect-sync-status-unknown"
+          ? "settings.protect-sync-status-not-detected"
           : "settings.protect-sync-status-unprotected";
       const statusClass = protectedNow
         ? DOMClasses2.STATUS_PROTECTED
