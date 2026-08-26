@@ -2,7 +2,7 @@
  * Unit tests for the Sync-safe guard (GH#35 (obsidian-unhide)).
  *
  * `hideFile`/`showFile`/`isSyncActive`/`reevaluateProtection` are driven through a fake `context`
- * shaped like `UnhidePlugin`: `app.internalPlugins.plugins.sync.getStatus()` reports the Sync
+ * shaped like `UnhidePlugin`: `app.internalPlugins.plugins.sync.instance.getStatus()` reports the Sync
  * connection status, and `settings.value.protectSync` toggles the guard. The adapter is a fake whose
  * `reconcileDeletion` is a spy and `getRealPath` is identity. `revealPrivateFilter`/
  * `revealPrivateAsyncFilter` are mocked (see top of file) to forward the private member into the
@@ -57,7 +57,9 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
   interface FakeContext {
     app: {
       internalPlugins: {
-        plugins: { sync?: { getStatus: () => $SyncPlugin.Status } };
+        plugins: {
+          sync?: { instance: { getStatus: () => $SyncPlugin.Status } };
+        };
       };
       vault: { adapter: FakeAdapter };
     };
@@ -86,7 +88,7 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
           plugins: {
             ...(syncStatus === undefined
               ? {}
-              : { sync: { getStatus: () => syncStatus } }),
+              : { sync: { instance: { getStatus: () => syncStatus } } }),
           },
         },
         vault: { adapter },
@@ -212,7 +214,7 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     const context = makeContext(true, "synced");
     const sync = context.app.internalPlugins.plugins.sync;
     if (sync) {
-      sync.getStatus = () => {
+      sync.instance.getStatus = () => {
         throw new Error("private changed");
       };
     }
@@ -230,7 +232,7 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     const context = makeContext(true, "synced");
     const sync = context.app.internalPlugins.plugins.sync;
     if (sync) {
-      sync.getStatus = () => {
+      sync.instance.getStatus = () => {
         throw new Error("private changed");
       };
     }
