@@ -1,6 +1,6 @@
 import {
-  revealPrivateFilter,
   revealPrivateAsyncFilter,
+  revealPrivateFilter,
 } from "@polyipseity/obsidian-plugin-library";
 import { noop } from "es-toolkit/function";
 import { around } from "monkey-around";

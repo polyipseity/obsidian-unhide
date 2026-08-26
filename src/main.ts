@@ -12,12 +12,12 @@ import { isNil } from "es-toolkit/predicate";
 import { type App, Plugin, type PluginManifest } from "obsidian";
 import { PluginLocales } from "../assets/locales.js";
 import { loadDocumentations } from "./documentations.js";
+import { loadHiddenFilesFeatures } from "./hidden-files-features.js";
 import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
+import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
+import { ShowingRules, loadRevealHiddenFiles } from "./reveal-hidden-files.js";
 import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
-import { ShowingRules, loadRevealHiddenFiles } from "./reveal-hidden-files.js";
-import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
-import { loadHiddenFilesFeatures } from "./hidden-files-features.js";
 
 export class UnhidePlugin
   extends Plugin
@@ -89,9 +89,13 @@ export class UnhidePlugin
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
         }),
         Promise.resolve().then(() => {
-          loadRevealHiddenFiles(this);
-          loadRenameHiddenFiles(this);
           loadHiddenFilesFeatures(this);
+        }),
+        Promise.resolve().then(() => {
+          loadRevealHiddenFiles(this);
+        }),
+        Promise.resolve().then(() => {
+          loadRenameHiddenFiles(this);
         }),
       ]);
     })().catch((error: unknown) => {
