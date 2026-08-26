@@ -83,7 +83,6 @@ export class UnhidePlugin
       for (const child of children) {
         this.addChild(child);
       }
-      const rules = loadRules(this);
       await Promise.all([
         Promise.resolve().then(() => {
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
@@ -91,12 +90,17 @@ export class UnhidePlugin
         Promise.resolve().then(() => {
           loadFeatures(this);
         }),
-        Promise.resolve().then(() => {
-          loadRevealHiddenFiles(this, rules);
-        }),
-        Promise.resolve().then(() => {
-          loadRenameHiddenFiles(this, rules);
-        }),
+        (async () => {
+          const rules = loadRules(this);
+          await Promise.all([
+            Promise.resolve().then(() => {
+              loadRevealHiddenFiles(this, rules);
+            }),
+            Promise.resolve().then(() => {
+              loadRenameHiddenFiles(this, rules);
+            }),
+          ]);
+        })(),
       ]);
     })().catch((error: unknown) => {
       self.console.error(error);
