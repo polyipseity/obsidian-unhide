@@ -18,6 +18,7 @@ import type { UnhidePlugin } from "./main.js";
 import {
   isHiddenPath,
   isProtectionActive,
+  isSyncActive,
   type ShowingRules,
 } from "./utils.js";
 
@@ -77,7 +78,14 @@ export function reevaluateProtection(context: UnhidePlugin): void {
       context,
     );
   } else if (!now && lastProtectionActive) {
-    // Transition active -> inactive: flush the deferred paths so they are actually hidden.
+    // Transition active -> inactive: warn that hiding will now propagate deletions, then flush.
+    if (isSyncActive(context)) {
+      notice(
+        () => context.language.value.t("notices.protect-sync-inactive"),
+        context.settings.value.errorNoticeTimeout,
+        context,
+      );
+    }
     void flushProtected(context);
   }
   lastProtectionActive = now;

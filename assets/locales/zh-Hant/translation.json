@@ -25,7 +25,8 @@
   },
   "name": "Unhide",
   "notices": {
-    "protect-sync-active": "Sync is on. Hiding is skipped to avoid deleting files on other devices."
+    "protect-sync-active": "Sync is on. Hiding is skipped to avoid deleting files on other devices.",
+    "protect-sync-inactive": "Sync is still on. Hiding is no longer skipped, hiding hidden files will now delete them on other synced devices."
   },
   "settings": {
     "documentation": "$t(generic.documentation)",
