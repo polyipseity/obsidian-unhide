@@ -37,9 +37,10 @@ export function isHiddenPathname(pathname: string): boolean {
  * logged in to a sync vault, which `getStatus()` reports as anything other than
  * `"uninitialized"` or `"disconnected"`. The single `revealPrivateFilter` call
  * auto-traverses the access path, so a type change surfaces as a compile error
- * rather than a runtime crash. Every level falls back to `false` when its
- * private API is unavailable or throws, degrading to "not active" instead of
- * propagating an error.
+ * rather than a runtime crash. Because this gates a data-loss protection, it
+ * fails **closed**: when the Sync plugin is absent or its private API is
+ * unavailable or throws, it falls back to `true` (assume Sync active) so the
+ * `protectSync` guard stays on instead of silently disabling protection.
  *
  * Data-loss risk (GH#35 (obsidian-unhide)): when Sync is active, `hideFile`'s
  * destructive `reconcileDeletion` would propagate deletions to other synced
@@ -49,6 +50,31 @@ export function isHiddenPathname(pathname: string): boolean {
  * deferred paths on deactivation.
  */
 export function isSyncActive(context: PluginContext): boolean {
+  return revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()(
+    context,
+    [context.app],
+    (app0) => {
+      const sync = app0.internalPlugins.plugins.sync;
+      if (!sync) {
+        return true;
+      }
+      const status = sync.getStatus();
+      return status !== "uninitialized" && status !== "disconnected";
+    },
+    () => true,
+  );
+}
+
+/**
+ * Honestly reports whether Obsidian Sync is detectable for the current vault.
+ *
+ * Unlike {@link isSyncActive}, this never fails closed: it returns `false` when
+ * the Sync plugin is absent, when the private API is unavailable or throws, or
+ * when the status is `"uninitialized"`/`"disconnected"`. It is used only for the
+ * settings status label, where a truthful "Sync not enabled" state matters; the
+ * protection gate itself uses the fail-closed {@link isSyncActive}.
+ */
+export function isSyncDetected(context: PluginContext): boolean {
   return revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()(
     context,
     [context.app],
