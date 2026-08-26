@@ -12,7 +12,7 @@ import { isNil } from "es-toolkit/predicate";
 import { type App, Plugin, type PluginManifest } from "obsidian";
 import { PluginLocales } from "../assets/locales.js";
 import { loadDocumentations } from "./documentations.js";
-import { loadHiddenFilesFeatures } from "./hidden-files-features.js";
+import { loadFeatures } from "./features.js";
 import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
 import { loadRevealHiddenFiles } from "./reveal-hidden-files.js";
@@ -89,7 +89,7 @@ export class UnhidePlugin
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
         }),
         Promise.resolve().then(() => {
-          loadHiddenFilesFeatures(this);
+          loadFeatures(this);
         }),
         Promise.resolve().then(() => {
           loadRevealHiddenFiles(this, rules);

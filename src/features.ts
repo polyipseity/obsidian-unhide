@@ -77,6 +77,6 @@ function addCommands(context: UnhidePlugin): void {
   }
 }
 
-export function loadHiddenFilesFeatures(context: UnhidePlugin): void {
+export function loadFeatures(context: UnhidePlugin): void {
   addCommands(context);
 }
