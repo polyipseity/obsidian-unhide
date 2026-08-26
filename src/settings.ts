@@ -12,10 +12,10 @@ import {
 } from "@polyipseity/obsidian-plugin-library";
 import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
-import type { UnhidePlugin } from "./main.js";
-import { Settings } from "./settings-data.js";
-import { isSyncActive } from "./reveal-hidden-files.js";
 import { DOMClasses2 } from "./magic.js";
+import type { UnhidePlugin } from "./main.js";
+import { isSyncActive } from "./utils.js";
+import { Settings } from "./settings-data.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
   public constructor(

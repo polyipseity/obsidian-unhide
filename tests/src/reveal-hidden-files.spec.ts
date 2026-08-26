@@ -189,19 +189,19 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
 
   it("isSyncActive returns true when Sync is active", async () => {
     const context = makeContext(true, "synced");
-    const { isSyncActive } = await import("../../src/reveal-hidden-files.js");
+    const { isSyncActive } = await import("../../src/utils.js");
     expect(isSyncActive(context as never)).toBe(true);
   });
 
   it("isSyncActive returns false when Sync is not active", async () => {
     const context = makeContext(true, "disconnected");
-    const { isSyncActive } = await import("../../src/reveal-hidden-files.js");
+    const { isSyncActive } = await import("../../src/utils.js");
     expect(isSyncActive(context as never)).toBe(false);
   });
 
   it("isSyncActive falls back to false when the sync plugin is absent", async () => {
     const context = makeContext(true);
-    const { isSyncActive } = await import("../../src/reveal-hidden-files.js");
+    const { isSyncActive } = await import("../../src/utils.js");
     expect(isSyncActive(context as never)).toBe(false);
   });
 });
