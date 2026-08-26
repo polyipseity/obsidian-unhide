@@ -74,7 +74,7 @@ export interface $InternalPlugins {
    * (revealed as `$SyncPlugin` via the
    * `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()` whitelist in
    * `isSyncActive`). Typed as an intersection so the map stays generic while
-   * `sync` gains `getStatus`/`on`/`off`.
+   * `sync` gains an `instance` carrying `getStatus`/`on`/`off`.
    */
   readonly plugins: Readonly<Record<string, InternalPlugin>> & {
     readonly sync?: SyncPlugin;
@@ -83,12 +83,28 @@ export interface $InternalPlugins {
 
 /**
  * Private typings for Obsidian's Sync internal plugin
- * (`internalPlugins.plugins.sync`). Couples to Obsidian 1.13.7. `getStatus()`
- * reports the live Sync connection state; a vault only propagates deletions to
- * other devices once it is logged in to a sync vault, which `getStatus()` reports
- * as anything other than `"uninitialized"` or `"disconnected"`.
+ * (`internalPlugins.plugins.sync`). Couples to Obsidian 1.13.7. The registry
+ * entry is the `InternalPlugin` wrapper; the actual Sync API (`getStatus`,
+ * `status-change` events) lives on its `instance` field, reached via
+ * `internalPlugins.plugins.sync.instance`. `getStatus()` reports the live Sync
+ * connection state; a vault only propagates deletions to other devices once it
+ * is logged in to a sync vault, which `getStatus()` reports as anything other
+ * than `"uninitialized"` or `"disconnected"`.
  */
 export interface $SyncPlugin {
+  /** The live Sync plugin instance. Verified in Obsidian 1.13.7. */
+  readonly instance: $SyncPluginInstance;
+}
+
+/**
+ * Private typings for the live Obsidian Sync plugin instance
+ * (`internalPlugins.plugins.sync.instance`). Couples to Obsidian 1.13.7.
+ * `getStatus()` reports the live Sync connection state; a vault only propagates
+ * deletions to other devices once it is logged in to a sync vault, which
+ * `getStatus()` reports as anything other than `"uninitialized"` or
+ * `"disconnected"`.
+ */
+export interface $SyncPluginInstance {
   /** Current Sync connection status. Verified in Obsidian 1.13.7. */
   readonly getStatus: () => $SyncPlugin.Status;
   /** Subscribe to the Sync `"status-change"` event (Obsidian `Events`). */
