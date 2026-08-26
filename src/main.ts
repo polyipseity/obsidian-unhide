@@ -17,7 +17,7 @@ import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
 import { ShowingRules, loadRevealHiddenFiles } from "./reveal-hidden-files.js";
 import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
-import { loadHiddenFilesCommands } from "./hidden-files-commands.js";
+import { loadHiddenFilesFeatures } from "./hidden-files-features.js";
 
 export class UnhidePlugin
   extends Plugin
@@ -91,7 +91,7 @@ export class UnhidePlugin
         Promise.resolve().then(() => {
           loadRevealHiddenFiles(this);
           loadRenameHiddenFiles(this);
-          loadHiddenFilesCommands(this);
+          loadHiddenFilesFeatures(this);
         }),
       ]);
     })().catch((error: unknown) => {
