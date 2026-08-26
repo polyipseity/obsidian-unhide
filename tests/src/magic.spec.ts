@@ -23,7 +23,7 @@ describe("src/magic.ts", () => {
     expect(typeof DOMClasses2.SETTING_ITEM_NAME).toBe("string");
     expect(typeof DOMClasses2.SVG_ICON).toBe("string");
     expect(DOMClasses2.STATUS_PROTECTED).toBe("mod-success");
-    expect(DOMClasses2.STATUS_UNPROTECTED).toBe("mod-error");
+    expect(DOMClasses2.STATUS_UNPROTECTED).toBe("mod-warning");
     expect(DOMClasses2.STATUS_UNKNOWN).toBe("mod-warning");
   });
 });
