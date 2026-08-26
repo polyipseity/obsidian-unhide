@@ -187,17 +187,19 @@ export function reevaluateProtection(context: UnhidePlugin): void {
 }
 
 async function flushProtected(context: UnhidePlugin): Promise<void> {
-  await Promise.all(
-    [...protectedHiddenPaths].map(async (path) => {
-      protectedHiddenPaths.delete(path);
-      await revealPrivateAsyncFilter<[$DataAdapter]>()(
-        context,
-        [context.app.vault.adapter],
-        async (adapter0) =>
-          adapter0.reconcileDeletion(adapter0.getRealPath(path), path),
-        noop,
+  await revealPrivateAsyncFilter<[$DataAdapter]>()(
+    context,
+    [context.app.vault.adapter],
+    async (adapter0) => {
+      await Promise.all(
+        [...protectedHiddenPaths].map((path) => {
+          // Intentionally non `async`.
+          protectedHiddenPaths.delete(path);
+          return adapter0.reconcileDeletion(adapter0.getRealPath(path), path);
+        }),
       );
-    }),
+    },
+    noop,
   );
 }
 
