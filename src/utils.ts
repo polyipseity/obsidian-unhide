@@ -18,18 +18,19 @@ export function isHiddenPathname(pathname: string): boolean {
 /**
  * Reports whether Obsidian Sync is actually active for the current vault.
  *
- * Reads the Sync plugin's live connection status via `getStatus()` (reached
- * through the `$App` -> `$InternalPlugins` -> `$SyncPlugin` private-augmentation
- * chain in `src/@types/obsidian.ts`; `internalPlugins` is not in `obsidian.d.ts`
- * for the pinned Obsidian version). The plugin being *enabled* does not mean
- * Sync is active: a vault only propagates deletions to other devices once it is
- * logged in to a sync vault, which `getStatus()` reports as anything other than
- * `"uninitialized"` or `"disconnected"`. The single `revealPrivateFilter` call
- * auto-traverses the access path, so a type change surfaces as a compile error
- * rather than a runtime crash. Because this gates a data-loss protection, it
- * fails **closed**: when the Sync plugin is absent or its private API is
- * unavailable or throws, it falls back to `true` (assume Sync active) so the
- * `protectSync` guard stays on instead of silently disabling protection.
+ * Reads the Sync plugin's live connection status via `instance.getStatus()`
+ * (reached through the `$App` -> `$InternalPlugins` -> `$SyncPlugin` ->
+ * `$SyncPluginInstance` private-augmentation chain in `src/@types/obsidian.ts`;
+ * `internalPlugins` is not in `obsidian.d.ts` for the pinned Obsidian version).
+ * The plugin being *enabled* does not mean Sync is active: a vault only
+ * propagates deletions to other devices once it is logged in to a sync vault,
+ * which `instance.getStatus()` reports as anything other than `"uninitialized"`
+ * or `"disconnected"`. The single `revealPrivateFilter` call auto-traverses the
+ * access path, so a type change surfaces as a compile error rather than a
+ * runtime crash. Because this gates a data-loss protection, it fails **closed**:
+ * when the Sync plugin is absent or its private API is unavailable or throws, it
+ * falls back to `true` (assume Sync active) so the `protectSync` guard stays on
+ * instead of silently disabling protection.
  *
  * Data-loss risk (GH#35 (obsidian-unhide)): when Sync is active, `hideFile`'s
  * destructive `reconcileDeletion` would propagate deletions to other synced
@@ -47,7 +48,7 @@ export function isSyncActive(context: PluginContext): boolean {
       if (!sync) {
         return true;
       }
-      const status = sync.getStatus();
+      const status = sync.instance.getStatus();
       return status !== "uninitialized" && status !== "disconnected";
     },
     () => true,
@@ -85,7 +86,7 @@ export function isSyncDetected(context: PluginContext): boolean {
       if (!sync) {
         return false;
       }
-      const status = sync.getStatus();
+      const status = sync.instance.getStatus();
       return status !== "uninitialized" && status !== "disconnected";
     },
     () => false,
