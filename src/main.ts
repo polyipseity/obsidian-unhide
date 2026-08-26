@@ -15,7 +15,8 @@ import { loadDocumentations } from "./documentations.js";
 import { loadHiddenFilesFeatures } from "./hidden-files-features.js";
 import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
-import { ShowingRules, loadRevealHiddenFiles } from "./reveal-hidden-files.js";
+import { loadRevealHiddenFiles } from "./reveal-hidden-files.js";
+import { ShowingRules } from "./utils.js";
 import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
 
