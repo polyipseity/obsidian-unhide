@@ -203,9 +203,9 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
       const handler = (): void => {
         reevaluateProtection(context);
       };
-      sync.on("status-change", handler);
+      sync.instance.on("status-change", handler);
       context.register(() => {
-        sync.off("status-change", handler);
+        sync.instance.off("status-change", handler);
       });
     },
     noop,
