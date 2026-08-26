@@ -106,16 +106,16 @@ export interface $SyncPlugin {
  */
 export interface $SyncPluginInstance {
   /** Current Sync connection status. Verified in Obsidian 1.13.7. */
-  readonly getStatus: () => $SyncPlugin.Status;
+  readonly getStatus: () => $SyncPluginInstance.Status;
   /** Subscribe to the Sync `"status-change"` event (Obsidian `Events`). */
   on(
     name: "status-change",
-    callback: (status: $SyncPlugin.Status) => unknown,
+    callback: (status: $SyncPluginInstance.Status) => unknown,
   ): void;
   /** Unsubscribe from the Sync `"status-change"` event (Obsidian `Events`). */
   off(
     name: "status-change",
-    callback: (status: $SyncPlugin.Status) => unknown,
+    callback: (status: $SyncPluginInstance.Status) => unknown,
   ): void;
 }
 
@@ -123,7 +123,7 @@ export interface $SyncPluginInstance {
  * Obsidian Sync connection status. Verified in Obsidian 1.13.7: the Sync
  * plugin's `getStatus()` returns one of these strings.
  */
-export namespace $SyncPlugin {
+export namespace $SyncPluginInstance {
   export type Status =
     | "uninitialized"
     | "disconnected"

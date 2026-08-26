@@ -14,7 +14,7 @@
  * module under test with `vi.resetModules()` and re-importing `notice` from the mocked library.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { $SyncPlugin } from "../../src/@types/obsidian.js";
+import type { $SyncPluginInstance } from "../../src/@types/obsidian.js";
 
 vi.mock("@polyipseity/obsidian-plugin-library", async (importOriginal) => {
   const actual =
@@ -58,7 +58,7 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     app: {
       internalPlugins: {
         plugins: {
-          sync?: { instance: { getStatus: () => $SyncPlugin.Status } };
+          sync?: { instance: { getStatus: () => $SyncPluginInstance.Status } };
         };
       };
       vault: { adapter: FakeAdapter };
@@ -75,7 +75,7 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
 
   function makeContext(
     protectSync: boolean,
-    syncStatus?: $SyncPlugin.Status,
+    syncStatus?: $SyncPluginInstance.Status,
   ): FakeContext {
     const adapter: FakeAdapter = {
       reconcileDeletion: vi.fn(),
