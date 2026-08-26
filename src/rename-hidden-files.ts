@@ -198,10 +198,7 @@ export function patchFileExplorer(
   });
 }
 
-export function loadRenameHiddenFiles(
-  context: UnhidePlugin,
-  filter: ShowingRules,
-): void {
-  patchFileExplorer(context, filter);
-  patchErrorMessage(context, filter);
+export function loadRenameHiddenFiles(context: UnhidePlugin): void {
+  patchFileExplorer(context, context.showingRules);
+  patchErrorMessage(context, context.showingRules);
 }

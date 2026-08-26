@@ -430,9 +430,6 @@ export async function hideFile(
   );
 }
 
-export function loadRevealHiddenFiles(
-  context: UnhidePlugin,
-  filter: ShowingRules,
-): void {
-  patchVault(context, filter);
+export function loadRevealHiddenFiles(context: UnhidePlugin): void {
+  patchVault(context, context.showingRules);
 }

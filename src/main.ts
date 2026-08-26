@@ -27,6 +27,7 @@ export class UnhidePlugin
   public readonly language: LanguageManager;
   public readonly localSettings: StorageSettingsManager<LocalSettings>;
   public readonly settings: SettingsManager<Settings>;
+  public readonly showingRules: ShowingRules;
 
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
@@ -45,6 +46,7 @@ export class UnhidePlugin
     );
     this.localSettings = new StorageSettingsManager(this, LocalSettings.fix);
     this.settings = new SettingsManager(this, Settings.fix);
+    this.showingRules = new ShowingRules(this);
   }
 
   public displayName(unlocalized = false): string {
@@ -87,9 +89,8 @@ export class UnhidePlugin
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
         }),
         Promise.resolve().then(() => {
-          const filter = new ShowingRules(this);
-          loadRevealHiddenFiles(this, filter);
-          loadRenameHiddenFiles(this, filter);
+          loadRevealHiddenFiles(this);
+          loadRenameHiddenFiles(this);
           loadHiddenFilesCommands(this);
         }),
       ]);
