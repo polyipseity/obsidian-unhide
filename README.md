@@ -8,7 +8,7 @@ __[Repository][repository] · [Changelog][changelog] · [Community plugin][commu
 
 > __For Obsidian Sync users__
 >
-> Using this plugin in a vault with Obsidian Sync can permanently delete hidden files on all your synced devices. The "Protect Obsidian Sync" setting (on by default) prevents this by skipping hiding while Sync is active, but it may not catch every case. Do not disable it in synced vaults, and keep independent backups.
+> Using this plugin in a vault with Obsidian Sync can permanently delete hidden files on all your synced devices. The "Protect Obsidian Sync" setting (on by default) prevents this by skipping hiding while Sync is active, but it may not catch every case. Do not disable it in synced vaults, and keep independent backups. Do not use this plugin if your data is very important.
 
 ![Trailer][trailer]
 
