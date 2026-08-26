@@ -61,7 +61,8 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
       };
       vault: { adapter: FakeAdapter };
     };
-    settings: { value: { protectSync: boolean } };
+    settings: { value: { protectSync: boolean; errorNoticeTimeout: number } };
+    language: { value: { t: (key: string) => string } };
     register: () => void;
   }
   interface FakeAdapter {
@@ -90,7 +91,8 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
         },
         vault: { adapter },
       },
-      settings: { value: { protectSync } },
+      settings: { value: { protectSync, errorNoticeTimeout: 0 } },
+      language: { value: { t: (key: string): string => key } },
       register: vi.fn(),
     };
   }
@@ -170,8 +172,9 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
       PATH2,
       PATH2,
     );
-    // Notice fired once on the inactive->active transition, not on flush.
-    expect(notice).toHaveBeenCalledTimes(1);
+    // Notice fired on the inactive->active transition and again on the
+    // active->inactive transition while Sync is active.
+    expect(notice).toHaveBeenCalledTimes(2);
   });
 
   it("showFile drops a path from the pending set so it is not flushed", async () => {
@@ -245,5 +248,49 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     const context = makeContext(true, "disconnected");
     const { isSyncDetected } = await import("../../src/utils.js");
     expect(isSyncDetected(context as never)).toBe(false);
+  });
+
+  it("isProtectionActive is true only when protectSync is ON and Sync active", async () => {
+    const { isProtectionActive } = await import("../../src/utils.js");
+    expect(isProtectionActive(makeContext(true, "synced") as never)).toBe(true);
+    expect(isProtectionActive(makeContext(false, "synced") as never)).toBe(
+      false,
+    );
+    expect(isProtectionActive(makeContext(true, "disconnected") as never)).toBe(
+      false,
+    );
+  });
+
+  it("isProtectionActive fails closed (true) when Sync plugin is absent", async () => {
+    const { isProtectionActive } = await import("../../src/utils.js");
+    expect(isProtectionActive(makeContext(true) as never)).toBe(true);
+  });
+
+  it("warns on the active->inactive transition while Sync is active", async () => {
+    const { notice } = await import("@polyipseity/obsidian-plugin-library");
+    const { reevaluateProtection } =
+      await import("../../src/reveal-hidden-files.js");
+    // Establish active baseline (protection on + Sync active).
+    reevaluateProtection(makeContext(true, "synced") as never);
+    expect(notice).toHaveBeenCalledTimes(1);
+    // Transition to inactive while Sync still active: inactive warning fires.
+    reevaluateProtection(makeContext(false, "synced") as never);
+    expect(notice).toHaveBeenCalledTimes(2);
+    const lastArg = (notice as ReturnType<typeof vi.fn>).mock.calls.at(
+      -1,
+    )?.[0] as (() => string) | undefined;
+    expect(typeof lastArg).toBe("function");
+    expect(lastArg?.()).toBe("notices.protect-sync-inactive");
+  });
+
+  it("does not warn on active->inactive transition when Sync is not active", async () => {
+    const { notice } = await import("@polyipseity/obsidian-plugin-library");
+    const { reevaluateProtection } =
+      await import("../../src/reveal-hidden-files.js");
+    reevaluateProtection(makeContext(true, "synced") as never);
+    expect(notice).toHaveBeenCalledTimes(1);
+    // Sync disconnected on deactivation: no second warning.
+    reevaluateProtection(makeContext(false, "disconnected") as never);
+    expect(notice).toHaveBeenCalledTimes(1);
   });
 });

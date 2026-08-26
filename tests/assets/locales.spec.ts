@@ -86,5 +86,10 @@ describe("PluginLocales", () => {
     expect((notices["protect-sync-active"] as string).length).toBeGreaterThan(
       0,
     );
+
+    expect(typeof notices["protect-sync-inactive"]).toBe("string");
+    expect((notices["protect-sync-inactive"] as string).length).toBeGreaterThan(
+      0,
+    );
   });
 });
