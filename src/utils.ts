@@ -74,6 +74,19 @@ export function isSyncActive(context: PluginContext): boolean {
  * settings status label, where a truthful "Sync not enabled" state matters; the
  * protection gate itself uses the fail-closed {@link isSyncActive}.
  */
+/**
+ * Reports whether Sync-safe protection is currently active for the vault.
+ *
+ * Protection is active only when the `protectSync` setting is ON and Sync is
+ * actually active (fail-closed via {@link isSyncActive}). This is the single
+ * source of truth for both the settings status label and the runtime
+ * `reevaluateProtection` gate, so the label never shows a danger color when
+ * protection is genuinely on.
+ */
+export function isProtectionActive(context: UnhidePlugin): boolean {
+  return context.settings.value.protectSync && isSyncActive(context);
+}
+
 export function isSyncDetected(context: PluginContext): boolean {
   return revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()(
     context,

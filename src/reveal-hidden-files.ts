@@ -15,7 +15,11 @@ import type {
   $SyncPlugin,
 } from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
-import { isHiddenPath, isSyncActive, type ShowingRules } from "./utils.js";
+import {
+  isHiddenPath,
+  isProtectionActive,
+  type ShowingRules,
+} from "./utils.js";
 
 // Patches Obsidian internals via monkey-around; the vendor/ library patches are separate and out of scope here.
 
@@ -62,10 +66,6 @@ import { isHiddenPath, isSyncActive, type ShowingRules } from "./utils.js";
 const protectedHiddenPaths = new Set<string>();
 // Tracks the last observed protection state so the notice/flush only fire on a transition.
 let lastProtectionActive = false;
-
-function isProtectionActive(context: UnhidePlugin): boolean {
-  return context.settings.value.protectSync && isSyncActive(context);
-}
 
 export function reevaluateProtection(context: UnhidePlugin): void {
   const now = isProtectionActive(context);

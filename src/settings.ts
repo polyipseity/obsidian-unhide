@@ -14,7 +14,7 @@ import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
 import { DOMClasses2 } from "./magic.js";
 import type { UnhidePlugin } from "./main.js";
-import { isSyncDetected } from "./utils.js";
+import { isProtectionActive } from "./utils.js";
 import { Settings } from "./settings-data.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
@@ -89,17 +89,17 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     this.newAllSettingsWidget(Settings.DEFAULT, Settings.fix);
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
-      const syncEnabled = isSyncDetected(context);
-      const statusKey = syncEnabled
-        ? settings.value.protectSync
-          ? "settings.protect-sync-status-protected"
-          : "settings.protect-sync-status-unprotected"
-        : "settings.protect-sync-status-unknown";
-      const statusClass = syncEnabled
-        ? settings.value.protectSync
-          ? DOMClasses2.STATUS_PROTECTED
-          : DOMClasses2.STATUS_UNPROTECTED
-        : DOMClasses2.STATUS_UNKNOWN;
+      const protectedNow = isProtectionActive(context);
+      const statusKey = protectedNow
+        ? "settings.protect-sync-status-protected"
+        : settings.value.protectSync
+          ? "settings.protect-sync-status-unknown"
+          : "settings.protect-sync-status-unprotected";
+      const statusClass = protectedNow
+        ? DOMClasses2.STATUS_PROTECTED
+        : settings.value.protectSync
+          ? DOMClasses2.STATUS_UNKNOWN
+          : DOMClasses2.STATUS_UNPROTECTED;
       setting
         .setName(i18n.t("settings.protect-sync"))
         .setDesc(
