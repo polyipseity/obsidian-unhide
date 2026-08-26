@@ -199,9 +199,51 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     expect(isSyncActive(context as never)).toBe(false);
   });
 
-  it("isSyncActive falls back to false when the sync plugin is absent", async () => {
+  it("isSyncActive fails closed (true) when the sync plugin is absent", async () => {
     const context = makeContext(true);
     const { isSyncActive } = await import("../../src/utils.js");
-    expect(isSyncActive(context as never)).toBe(false);
+    expect(isSyncActive(context as never)).toBe(true);
+  });
+
+  it("isSyncActive fails closed (true) when the private API throws", async () => {
+    const context = makeContext(true, "synced");
+    const sync = context.app.internalPlugins.plugins.sync;
+    if (sync) {
+      sync.getStatus = () => {
+        throw new Error("private changed");
+      };
+    }
+    const { isSyncActive } = await import("../../src/utils.js");
+    expect(isSyncActive(context as never)).toBe(true);
+  });
+
+  it("isSyncDetected returns false when the sync plugin is absent", async () => {
+    const context = makeContext(true);
+    const { isSyncDetected } = await import("../../src/utils.js");
+    expect(isSyncDetected(context as never)).toBe(false);
+  });
+
+  it("isSyncDetected returns false when the private API throws", async () => {
+    const context = makeContext(true, "synced");
+    const sync = context.app.internalPlugins.plugins.sync;
+    if (sync) {
+      sync.getStatus = () => {
+        throw new Error("private changed");
+      };
+    }
+    const { isSyncDetected } = await import("../../src/utils.js");
+    expect(isSyncDetected(context as never)).toBe(false);
+  });
+
+  it("isSyncDetected returns true when Sync is active", async () => {
+    const context = makeContext(true, "synced");
+    const { isSyncDetected } = await import("../../src/utils.js");
+    expect(isSyncDetected(context as never)).toBe(true);
+  });
+
+  it("isSyncDetected returns false when Sync is not active", async () => {
+    const context = makeContext(true, "disconnected");
+    const { isSyncDetected } = await import("../../src/utils.js");
+    expect(isSyncDetected(context as never)).toBe(false);
   });
 });
