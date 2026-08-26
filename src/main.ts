@@ -16,7 +16,7 @@ import { loadHiddenFilesFeatures } from "./hidden-files-features.js";
 import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
 import { loadRevealHiddenFiles } from "./reveal-hidden-files.js";
-import { ShowingRules } from "./utils.js";
+import { loadRules } from "./rules.js";
 import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
 
@@ -28,7 +28,6 @@ export class UnhidePlugin
   public readonly language: LanguageManager;
   public readonly localSettings: StorageSettingsManager<LocalSettings>;
   public readonly settings: SettingsManager<Settings>;
-  public readonly showingRules: ShowingRules;
 
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
@@ -47,7 +46,6 @@ export class UnhidePlugin
     );
     this.localSettings = new StorageSettingsManager(this, LocalSettings.fix);
     this.settings = new SettingsManager(this, Settings.fix);
-    this.showingRules = new ShowingRules(this);
   }
 
   public displayName(unlocalized = false): string {
@@ -85,6 +83,7 @@ export class UnhidePlugin
       for (const child of children) {
         this.addChild(child);
       }
+      const rules = loadRules(this);
       await Promise.all([
         Promise.resolve().then(() => {
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
@@ -93,10 +92,10 @@ export class UnhidePlugin
           loadHiddenFilesFeatures(this);
         }),
         Promise.resolve().then(() => {
-          loadRevealHiddenFiles(this);
+          loadRevealHiddenFiles(this, rules);
         }),
         Promise.resolve().then(() => {
-          loadRenameHiddenFiles(this);
+          loadRenameHiddenFiles(this, rules);
         }),
       ]);
     })().catch((error: unknown) => {

@@ -1,8 +1,8 @@
 import {
-  type PluginContext,
   notice,
   revealPrivateAsyncFilter,
   revealPrivateFilter,
+  type PluginContext,
 } from "@polyipseity/obsidian-plugin-library";
 import { noop } from "es-toolkit/function";
 import { around } from "monkey-around";
@@ -15,12 +15,8 @@ import type {
   $SyncPlugin,
 } from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
-import {
-  isHiddenPath,
-  isProtectionActive,
-  isSyncActive,
-  type ShowingRules,
-} from "./utils.js";
+import { isHiddenPath, isProtectionActive, isSyncActive } from "./utils.js";
+import type { ShowingRules } from "./rules.js";
 
 // Patches Obsidian internals via monkey-around; the vendor/ library patches are separate and out of scope here.
 
@@ -299,6 +295,9 @@ export async function hideFile(
   );
 }
 
-export function loadRevealHiddenFiles(context: UnhidePlugin): void {
-  patchVault(context, context.showingRules);
+export function loadRevealHiddenFiles(
+  context: UnhidePlugin,
+  filter: ShowingRules,
+): void {
+  patchVault(context, filter);
 }

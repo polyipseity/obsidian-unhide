@@ -14,7 +14,7 @@ import type {
   $Workspace,
 } from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
-import type { ShowingRules } from "./utils.js";
+import type { ShowingRules } from "./rules.js";
 import { isHiddenPathname } from "./utils.js";
 
 /**
@@ -198,7 +198,10 @@ export function patchFileExplorer(
   });
 }
 
-export function loadRenameHiddenFiles(context: UnhidePlugin): void {
-  patchFileExplorer(context, context.showingRules);
-  patchErrorMessage(context, context.showingRules);
+export function loadRenameHiddenFiles(
+  context: UnhidePlugin,
+  filter: ShowingRules,
+): void {
+  patchFileExplorer(context, filter);
+  patchErrorMessage(context, filter);
 }
