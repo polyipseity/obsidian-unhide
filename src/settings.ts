@@ -15,6 +15,7 @@ import type { loadDocumentations } from "./documentations.js";
 import type { UnhidePlugin } from "./main.js";
 import { Settings } from "./settings-data.js";
 import { isSyncActive } from "./show-hidden-files.js";
+import { DOMClasses2 } from "./magic.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
   public constructor(
@@ -96,9 +97,9 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
         : "settings.protect-sync-status-unknown";
       const statusClass = syncEnabled
         ? settings.value.protectSync
-          ? "unhide-status-protected"
-          : "unhide-status-unprotected"
-        : "unhide-status-unknown";
+          ? DOMClasses2.STATUS_PROTECTED
+          : DOMClasses2.STATUS_UNPROTECTED
+        : DOMClasses2.STATUS_UNKNOWN;
       setting
         .setName(i18n.t("settings.protect-sync"))
         .setDesc(
