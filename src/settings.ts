@@ -14,7 +14,7 @@ import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
 import type { UnhidePlugin } from "./main.js";
 import { Settings } from "./settings-data.js";
-import { isSyncActive } from "./show-hidden-files.js";
+import { isSyncActive } from "./reveal-hidden-files.js";
 import { DOMClasses2 } from "./magic.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {

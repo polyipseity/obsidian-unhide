@@ -15,7 +15,9 @@ import { loadDocumentations } from "./documentations.js";
 import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { LocalSettings, Settings } from "./settings-data.js";
 import { loadSettings } from "./settings.js";
-import { loadShowHiddenFiles } from "./show-hidden-files.js";
+import { ShowingRules, loadRevealHiddenFiles } from "./reveal-hidden-files.js";
+import { loadRenameHiddenFiles } from "./rename-hidden-files.js";
+import { loadHiddenFilesCommands } from "./hidden-files-commands.js";
 
 export class UnhidePlugin
   extends Plugin
@@ -85,7 +87,10 @@ export class UnhidePlugin
           loadSettings(this, loadDocumentations(this, isNil(loaded)));
         }),
         Promise.resolve().then(() => {
-          loadShowHiddenFiles(this);
+          const filter = new ShowingRules(this);
+          loadRevealHiddenFiles(this, filter);
+          loadRenameHiddenFiles(this, filter);
+          loadHiddenFilesCommands(this);
         }),
       ]);
     })().catch((error: unknown) => {
