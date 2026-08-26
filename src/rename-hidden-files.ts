@@ -15,7 +15,7 @@ import type {
 } from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
 import type { ShowingRules } from "./reveal-hidden-files.js";
-import { isHiddenPathname } from "./hidden-paths.js";
+import { isHiddenPathname } from "./utils.js";
 
 /**
  * Suppress the file-explorer dotfile error string while hidden files are shown.

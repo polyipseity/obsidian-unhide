@@ -20,7 +20,7 @@ import type {
 } from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
 import type { Settings } from "./settings-data.js";
-import { isHiddenPath } from "./hidden-paths.js";
+import { isHiddenPath } from "./utils.js";
 
 // Patches Obsidian internals via monkey-around; the vendor/ library patches are separate and out of scope here.
 
