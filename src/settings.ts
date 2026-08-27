@@ -14,7 +14,7 @@ import semverLt from "semver/functions/lt.js";
 import type { loadDocumentations } from "./documentations.js";
 import { DOMClasses2 } from "./magic.js";
 import type { UnhidePlugin } from "./main.js";
-import { isProtectionActive } from "./utils.js";
+import { isSyncProtectionActive } from "./utils.js";
 import { Settings } from "./settings-data.js";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
@@ -89,7 +89,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     this.newAllSettingsWidget(Settings.DEFAULT, Settings.fix);
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
-      const protectedNow = isProtectionActive(context);
+      const protectedNow = isSyncProtectionActive(context);
       const statusKey = protectedNow
         ? "settings.protect-sync-status-protected"
         : settings.value.protectSync

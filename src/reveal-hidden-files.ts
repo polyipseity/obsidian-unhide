@@ -15,8 +15,8 @@ import type {
   $SyncPlugin,
 } from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
-import { isHiddenPath, isProtectionActive, isSyncActive } from "./utils.js";
 import type { ShowingRules } from "./rules.js";
+import { isHiddenPath, isSyncActive, isSyncProtectionActive } from "./utils.js";
 
 // Patches Obsidian internals via monkey-around; the vendor/ library patches are separate and out of scope here.
 
@@ -65,7 +65,7 @@ const protectedHiddenPaths = new Set<string>();
 let lastProtectionActive = false;
 
 export function reevaluateProtection(context: UnhidePlugin): void {
-  const now = isProtectionActive(context);
+  const now = isSyncProtectionActive(context);
   if (now && !lastProtectionActive) {
     // Transition inactive -> active: warn that hiding is now skipped to avoid Sync data-loss.
     notice(
@@ -196,17 +196,14 @@ function patchVault(context: UnhidePlugin, filter: ShowingRules): void {
     context,
     [context.app],
     (app0) => {
-      const sync = app0.internalPlugins.plugins.sync;
-      if (!sync) {
-        return;
-      }
+      const sync = app0.internalPlugins.getPluginById("sync");
       const handler = (): void => {
         reevaluateProtection(context);
       };
-      sync.instance.on("status-change", handler);
       context.register(() => {
         sync.instance.off("status-change", handler);
       });
+      sync.instance.on("status-change", handler);
     },
     noop,
   );
@@ -280,7 +277,7 @@ export async function hideFile(
   context: UnhidePlugin,
   path: string,
 ): Promise<void> {
-  if (isProtectionActive(context)) {
+  if (isSyncProtectionActive(context)) {
     // Track the path as pending-hidden; do NOT call reconcileDeletion (avoids Sync data-loss).
     protectedHiddenPaths.add(path);
     return;

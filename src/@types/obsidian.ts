@@ -12,10 +12,12 @@ declare module "obsidian" {
   interface FileExplorerView extends Private<$FileExplorerView, PrivateKey> {}
   interface FileItem extends Private<$FileItem, PrivateKey> {}
   interface Filesystem extends Private<$Filesystem, PrivateKey> {}
-  interface InternalPlugin extends Events {}
+  interface InternalPlugin extends Plugin {}
   interface InternalPlugins extends Private<$InternalPlugins, PrivateKey> {}
   interface SyncPlugin
     extends InternalPlugin, Private<$SyncPlugin, PrivateKey> {}
+  interface SyncPluginInstance
+    extends Events, Private<$SyncPluginInstance, PrivateKey> {}
   interface MobileStat extends Private<$MobileStat, PrivateKey> {}
   interface TFile extends Private<$TFile, PrivateKey> {}
   interface Vault extends Private<$Vault, PrivateKey> {}
@@ -28,11 +30,11 @@ import type {
   FileExplorerView,
   FileItem,
   Filesystem,
-  InternalPlugin,
   InternalPlugins,
   MobileStat,
   Stat,
   SyncPlugin,
+  SyncPluginInstance,
   TFile,
   View,
   WorkspaceLeaf,
@@ -56,9 +58,8 @@ declare module "@polyipseity/obsidian-plugin-library" {
 export interface $App {
   /**
    * The internal (built-in) plugins registry. Verified present in Obsidian
-   * 1.13.7. Used to detect whether Obsidian Sync is active (GH#35 (obsidian-unhide)).
-   * Reached via the single `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()`
-   * whitelist in `isSyncActive`.
+   * 1.13.7. Used to detect whether Obsidian Sync is active (GH#35 (obsidian-unhide))
+   * via `internalPlugins.getPluginById("sync")`.
    */
   readonly internalPlugins: InternalPlugins;
 }
@@ -69,36 +70,30 @@ export interface $App {
  */
 export interface $InternalPlugins {
   /**
-   * Map from internal plugin id to the plugin instance. Most entries are
-   * generic `InternalPlugin`; the `sync` key is specifically a `SyncPlugin`
-   * (revealed as `$SyncPlugin` via the
-   * `revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()` whitelist in
-   * `isSyncActive`). Typed as an intersection so the map stays generic while
-   * `sync` gains an `instance` carrying `getStatus`/`on`/`off`.
+   * Returns the internal plugin registered under `id`. Verified present in
+   * Obsidian 1.13.7. The `"sync"` literal resolves to `SyncPlugin`; other ids
+   * are not typed here.
    */
-  readonly plugins: Readonly<Record<string, InternalPlugin>> & {
-    readonly sync?: SyncPlugin;
-  };
+  getPluginById(id: "sync"): SyncPlugin;
 }
 
 /**
- * Private typings for Obsidian's Sync internal plugin
- * (`internalPlugins.plugins.sync`). Couples to Obsidian 1.13.7. The registry
- * entry is the `InternalPlugin` wrapper; the actual Sync API (`getStatus`,
- * `status-change` events) lives on its `instance` field, reached via
- * `internalPlugins.plugins.sync.instance`. `getStatus()` reports the live Sync
- * connection state; a vault only propagates deletions to other devices once it
- * is logged in to a sync vault, which `getStatus()` reports as anything other
- * than `"uninitialized"` or `"disconnected"`.
+ * Private typings for Obsidian's Sync internal plugin, reached via
+ * `internalPlugins.getPluginById("sync")`. Couples to Obsidian 1.13.7. The
+ * registry entry is the `InternalPlugin` wrapper; the actual Sync API
+ * (`getStatus`, `status-change` events) lives on its `instance` field. `getStatus()`
+ * reports the live Sync connection state; a vault only propagates deletions to
+ * other devices once it is logged in to a sync vault, which `getStatus()` reports
+ * as anything other than `"uninitialized"` or `"disconnected"`.
  */
 export interface $SyncPlugin {
-  /** The live Sync plugin instance. Verified in Obsidian 1.13.7. */
-  readonly instance: $SyncPluginInstance;
+  /** The live Sync plugin instance. Reached via `getPluginById("sync")`. Verified in Obsidian 1.13.7. */
+  readonly instance: SyncPluginInstance;
 }
 
 /**
- * Private typings for the live Obsidian Sync plugin instance
- * (`internalPlugins.plugins.sync.instance`). Couples to Obsidian 1.13.7.
+ * Private typings for the live Obsidian Sync plugin instance, reached via
+ * `internalPlugins.getPluginById("sync")?.instance`. Couples to Obsidian 1.13.7.
  * `getStatus()` reports the live Sync connection state; a vault only propagates
  * deletions to other devices once it is logged in to a sync vault, which
  * `getStatus()` reports as anything other than `"uninitialized"` or

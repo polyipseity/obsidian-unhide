@@ -2,7 +2,12 @@ import {
   revealPrivateFilter,
   type PluginContext,
 } from "@polyipseity/obsidian-plugin-library";
-import type { $App, $InternalPlugins, $SyncPlugin } from "./@types/obsidian.js";
+import type {
+  $App,
+  $InternalPlugins,
+  $SyncPlugin,
+  $SyncPluginInstance,
+} from "./@types/obsidian.js";
 import type { UnhidePlugin } from "./main.js";
 
 // Pure helpers for detecting dot-prefixed hidden paths.
@@ -18,19 +23,23 @@ export function isHiddenPathname(pathname: string): boolean {
 /**
  * Reports whether Obsidian Sync is actually active for the current vault.
  *
- * Reads the Sync plugin's live connection status via `instance.getStatus()`
- * (reached through the `$App` -> `$InternalPlugins` -> `$SyncPlugin` ->
- * `$SyncPluginInstance` private-augmentation chain in `src/@types/obsidian.ts`;
- * `internalPlugins` is not in `obsidian.d.ts` for the pinned Obsidian version).
- * The plugin being *enabled* does not mean Sync is active: a vault only
- * propagates deletions to other devices once it is logged in to a sync vault,
- * which `instance.getStatus()` reports as anything other than `"uninitialized"`
- * or `"disconnected"`. The single `revealPrivateFilter` call auto-traverses the
- * access path, so a type change surfaces as a compile error rather than a
- * runtime crash. Because this gates a data-loss protection, it fails **closed**:
- * when the Sync plugin is absent or its private API is unavailable or throws, it
- * falls back to `true` (assume Sync active) so the `protectSync` guard stays on
- * instead of silently disabling protection.
+ * Reads the Sync plugin's live connection status via `instance.getStatus()`,
+ * reached through the private `internalPlugins.getPluginById("sync")` accessor
+ * (typed in `src/@types/obsidian.ts`; `internalPlugins` is not in `obsidian.d.ts`
+ * for the pinned Obsidian version). The single `revealPrivateFilter` call
+ * auto-traverses the `$App` -> `$InternalPlugins` -> `$SyncPlugin` ->
+ * `$SyncPluginInstance` private augmentation chain, so a type change surfaces as
+ * a compile error rather than a runtime crash. The plugin being *enabled* does
+ * not mean Sync is active: a vault
+ * only propagates deletions to other devices once it is logged in to a sync
+ * vault, which `instance.getStatus()` reports as anything other than
+ * `"uninitialized"` or `"disconnected"`.
+ *
+ * `fallback` controls the behavior when the Sync plugin is absent or its private
+ * API is unavailable or throws. Because this gates a data-loss protection, the
+ * default is `true` (fail **closed**: assume Sync active) so the `protectSync`
+ * guard stays on instead of silently disabling protection. Pass `false` for a
+ * truthful "Sync not enabled" status label.
  *
  * Data-loss risk (GH#35 (obsidian-unhide)): when Sync is active, `hideFile`'s
  * destructive `reconcileDeletion` would propagate deletions to other synced
@@ -39,31 +48,25 @@ export function isHiddenPathname(pathname: string): boolean {
  * shows the `notices.protect-sync-active` notice on activation and flushes the
  * deferred paths on deactivation.
  */
-export function isSyncActive(context: PluginContext): boolean {
-  return revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()(
+export function isSyncActive(
+  context: PluginContext,
+  fallback: boolean = true,
+): boolean {
+  return revealPrivateFilter<
+    [$App, $InternalPlugins, $SyncPlugin, $SyncPluginInstance]
+  >()(
     context,
     [context.app],
     (app0) => {
-      const sync = app0.internalPlugins.plugins.sync;
-      if (!sync) {
-        return true;
-      }
-      const status = sync.instance.getStatus();
+      const status = app0.internalPlugins
+        .getPluginById("sync")
+        .instance.getStatus();
       return status !== "uninitialized" && status !== "disconnected";
     },
-    () => true,
+    () => fallback,
   );
 }
 
-/**
- * Honestly reports whether Obsidian Sync is detectable for the current vault.
- *
- * Unlike {@link isSyncActive}, this never fails closed: it returns `false` when
- * the Sync plugin is absent, when the private API is unavailable or throws, or
- * when the status is `"uninitialized"`/`"disconnected"`. It is used only for the
- * settings status label, where a truthful "Sync not enabled" state matters; the
- * protection gate itself uses the fail-closed {@link isSyncActive}.
- */
 /**
  * Reports whether Sync-safe protection is currently active for the vault.
  *
@@ -73,22 +76,6 @@ export function isSyncActive(context: PluginContext): boolean {
  * `reevaluateProtection` gate, so the label never shows a danger color when
  * protection is genuinely on.
  */
-export function isProtectionActive(context: UnhidePlugin): boolean {
+export function isSyncProtectionActive(context: UnhidePlugin): boolean {
   return context.settings.value.protectSync && isSyncActive(context);
-}
-
-export function isSyncDetected(context: PluginContext): boolean {
-  return revealPrivateFilter<[$App, $InternalPlugins, $SyncPlugin]>()(
-    context,
-    [context.app],
-    (app0) => {
-      const sync = app0.internalPlugins.plugins.sync;
-      if (!sync) {
-        return false;
-      }
-      const status = sync.instance.getStatus();
-      return status !== "uninitialized" && status !== "disconnected";
-    },
-    () => false,
-  );
 }
