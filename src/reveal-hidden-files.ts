@@ -21,7 +21,7 @@ import { isHiddenPath, isSyncActive, isSyncProtectionActive } from "./utils.js";
 // Patches Obsidian internals via monkey-around; the vendor/ library patches are separate and out of scope here.
 
 /**
- * Tracks deleted files that match the hidden-files filter and reveals them so the plugin can keep
+ * Tracks deleted files that match the hidden-files filter and reveals them so the plugin keeps
  * them visible after Obsidian removes them from the adapter.
  *
  * Target: patches `DataAdapter.reconcileDeletion` and reads the private `adapter._exists` method
@@ -29,7 +29,7 @@ import { isHiddenPath, isSyncActive, isSyncProtectionActive } from "./utils.js";
  *
  * Purpose: when Obsidian deletes a path that the filter considers hidden, the plugin records the
  * path in `hiddenPaths` and, if it still physically exists and passes `filter.test`, shows it
- * again. This keeps user-hidden files visible in the file explorer even though Obsidian has
+ * again. User-hidden files stay visible in the file explorer even though Obsidian has
  * reconciled them out of the adapter. Paths that no longer exist are pruned from `hiddenPaths`.
  *
  * Obsidian-version coupling: depends on the private `DataAdapter._exists` method and the
@@ -38,7 +38,7 @@ import { isHiddenPath, isSyncActive, isSyncProtectionActive } from "./utils.js";
  * takes `(realPath, path)` and defaults its internal `force` to `true` (`void 0===n&&(n=!0)`),
  * which performs the real removal; `force = false` instead defers via `setTimeout` + `reconcileFile`.
  * The plugin forwards only the two received args (`next.apply(this, args)`), so `force` stays `true`
- * and Obsidian performs the actual deletion — the plugin merely observes it and re-shows the file if
+ * and Obsidian performs the actual deletion. The plugin merely observes it and re-shows the file if
  * it still physically exists and passes `filter.test`. No third argument is required at the patch
  * site. If Obsidian renames or changes the signature of `_exists` or `reconcileDeletion`, hidden-path
  * tracking breaks and deleted hidden files may disappear from the explorer. Both private members are

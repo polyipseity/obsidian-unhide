@@ -20,7 +20,7 @@ import type { Settings } from "./settings-data.js";
  * Purpose: when the user changes the vault's configuration folder, the plugin re-emits
  * `onChanged` so the `showConfigurationFolder` rule re-tests against the new `configDir` and
  * shows or hides the `.obsidian` folder accordingly. Without this patch, a config-dir change
- * would not refresh visibility until another setting mutated.
+ * would not refresh visibility until another setting changed.
  *
  * Obsidian-version coupling: depends on the private `Vault.configDir` property and the
  * `Vault.setConfigDir` method. Verified in 1.13.7: `setConfigDir(dir)` only assigns
@@ -64,7 +64,7 @@ export class ShowingRules extends SettingRules<Settings> {
         context.register(
           around(vault0, {
             setConfigDir(next) {
-              // Verified 1.13.7 body: `this.configDir = dir` (no other side effect) — re-emit after it runs.
+              // Verified 1.13.7 body: `this.configDir = dir` (no other side effect). Re-emit after it runs.
               return function fn(
                 this: typeof vault0,
                 ...args: Parameters<typeof next>

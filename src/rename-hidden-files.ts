@@ -95,10 +95,10 @@ export function patchFileExplorer(
           const { view } = leaf;
           // Detect the file-explorer rename method at runtime. Obsidian ≥1.13.7 renamed
           // `acceptRename` to `saveRename`; ancient builds used `finishRename`. `monkey-around`
-          // installs a throwing stub for any absent key, so pass exactly one key — the first that
+          // installs a throwing stub for any absent key, so pass exactly one key, the first that
           // exists on the prototype.
           const renamePrototype = Object.getPrototypeOf(view) as typeof view;
-          // Verified 1.13.7: `saveRename` is the live method on `FileExplorerView.prototype`; `acceptRename` moved to the property-rename view and `finishRename` was removed — so detect the single present method at runtime.
+          // Verified 1.13.7: `saveRename` is the live method on `FileExplorerView.prototype`; `acceptRename` moved to the property-rename view and `finishRename` was removed. Detect the single present method at runtime.
           const renameMethod: "saveRename" | "acceptRename" | "finishRename" =
             "saveRename" in renamePrototype
               ? "saveRename"
@@ -142,7 +142,7 @@ export function patchFileExplorer(
                         // Swap the rename target to a UUID so the real hidden filename is used; getNewPathAfterRename maps the UUID back to the hidden name.
                         patch2 = around(fileBeingRenamed, {
                           getNewPathAfterRename(proto2) {
-                            // Verified 1.13.7 body: strips control chars, trims, then joins under `parent.path` (or root) — we map the UUID placeholder back to the real dotted name.
+                            // Verified 1.13.7 body: strips control chars, trims, then joins under `parent.path` (or root). We map the UUID placeholder back to the real dotted name.
                             return function fn2(
                               this: typeof fileBeingRenamed,
                               ...args2: Parameters<typeof proto2>
