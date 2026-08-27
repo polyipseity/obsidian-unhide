@@ -9,5 +9,5 @@ export namespace DOMClasses2 {
   // classes so coloring stays theme-aware without custom CSS.
   export const STATUS_PROTECTED = "mod-success",
     STATUS_UNPROTECTED = "mod-warning",
-    STATUS_UNKNOWN = "mod-warning";
+    STATUS_IDLE = "mod-warning";
 }

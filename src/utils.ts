@@ -103,7 +103,7 @@ export function syncProtectionStatus(
   if (!isSyncActive(context, false)) {
     return {
       key: "settings.protect-sync-status-not-detected",
-      cls: DOMClasses2.STATUS_UNKNOWN,
+      cls: DOMClasses2.STATUS_IDLE,
     };
   }
   return context.settings.value.protectSync
