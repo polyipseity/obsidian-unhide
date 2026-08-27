@@ -102,7 +102,7 @@ export function syncProtectionStatus(
 ): Readonly<{ key: string; cls: string }> {
   if (!isSyncActive(context, false)) {
     return {
-      key: "settings.protect-sync-status-not-detected",
+      key: "settings.protect-sync-status-idle",
       cls: DOMClasses2.STATUS_IDLE,
     };
   }
