@@ -17,13 +17,13 @@ describe("src/magic.ts", () => {
     expect(DOMClasses2).toHaveProperty("SVG_ICON");
     expect(DOMClasses2).toHaveProperty("STATUS_PROTECTED");
     expect(DOMClasses2).toHaveProperty("STATUS_UNPROTECTED");
-    expect(DOMClasses2).toHaveProperty("STATUS_UNKNOWN");
+    expect(DOMClasses2).toHaveProperty("STATUS_IDLE");
     expect(typeof DOMClasses2.LUCIDE_HEART).toBe("string");
     expect(typeof DOMClasses2.SETTING_ITEM).toBe("string");
     expect(typeof DOMClasses2.SETTING_ITEM_NAME).toBe("string");
     expect(typeof DOMClasses2.SVG_ICON).toBe("string");
     expect(DOMClasses2.STATUS_PROTECTED).toBe("mod-success");
     expect(DOMClasses2.STATUS_UNPROTECTED).toBe("mod-warning");
-    expect(DOMClasses2.STATUS_UNKNOWN).toBe("mod-warning");
+    expect(DOMClasses2.STATUS_IDLE).toBe("mod-warning");
   });
 });
