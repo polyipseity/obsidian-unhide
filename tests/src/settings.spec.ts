@@ -85,42 +85,42 @@ describe("src/utils.ts syncProtectionStatus (GH#35 (obsidian-unhide))", () => {
     });
   });
 
-  it("reports not-detected when Sync is disconnected and protection is off", async () => {
+  it("reports idle when Sync is disconnected and protection is off", async () => {
     const { syncProtectionStatus } = await import("../../src/utils.js");
     const status = syncProtectionStatus(
       makeContext(false, "disconnected") as never,
     );
     expect(status).toEqual({
-      key: "settings.protect-sync-status-not-detected",
+      key: "settings.protect-sync-status-idle",
       cls: "mod-warning",
     });
   });
 
-  it("reports not-detected when Sync is uninitialized and protection is on", async () => {
+  it("reports idle when Sync is uninitialized and protection is on", async () => {
     const { syncProtectionStatus } = await import("../../src/utils.js");
     const status = syncProtectionStatus(
       makeContext(true, "uninitialized") as never,
     );
     expect(status).toEqual({
-      key: "settings.protect-sync-status-not-detected",
+      key: "settings.protect-sync-status-idle",
       cls: "mod-warning",
     });
   });
 
-  it("reports not-detected when the Sync plugin is absent and protection is off", async () => {
+  it("reports idle when the Sync plugin is absent and protection is off", async () => {
     const { syncProtectionStatus } = await import("../../src/utils.js");
     const status = syncProtectionStatus(makeContext(false, null) as never);
     expect(status).toEqual({
-      key: "settings.protect-sync-status-not-detected",
+      key: "settings.protect-sync-status-idle",
       cls: "mod-warning",
     });
   });
 
-  it("reports not-detected when the Sync plugin is absent and protection is on", async () => {
+  it("reports idle when the Sync plugin is absent and protection is on", async () => {
     const { syncProtectionStatus } = await import("../../src/utils.js");
     const status = syncProtectionStatus(makeContext(true, null) as never);
     expect(status).toEqual({
-      key: "settings.protect-sync-status-not-detected",
+      key: "settings.protect-sync-status-idle",
       cls: "mod-warning",
     });
   });
