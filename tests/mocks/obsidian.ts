@@ -721,7 +721,7 @@ export class MetadataCache extends Events {
       this.cache.set(normalized, metadata);
       this.trigger("changed", this.vault.getFileByPath(path));
     } catch {
-      // Parsing error — keep cache absent
+      // Parsing error: keep cache absent
       this.cache.delete(normalized);
     }
   }
@@ -1769,7 +1769,7 @@ export const MarkdownRenderer = {
   ): Promise<void> => {
     el.textContent = markdown;
   },
-  // Some environments/tests expect the newer `render(app, ...)` API —
+  // Some environments/tests expect the newer `render(app, ...)` API.
   // provide a thin shim so both signatures work in tests.
   render: async (
     _app: App,

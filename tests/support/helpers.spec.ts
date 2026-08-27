@@ -1,5 +1,5 @@
 /**
- * Tests for small test utilities in `tests/helpers.ts` — keep these fast and explicit.
+ * Tests for small test utilities in `tests/helpers.ts`. Keep these fast and explicit.
  */
 import { describe, it, expect } from "vitest";
 import { tick } from "./helpers.js";
