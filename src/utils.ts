@@ -8,6 +8,7 @@ import type {
   $SyncPlugin,
   $SyncPluginInstance,
 } from "./@types/obsidian.js";
+import { DOMClasses2 } from "./magic.js";
 import type { UnhidePlugin } from "./main.js";
 
 // Pure helpers for detecting dot-prefixed hidden paths.
@@ -75,7 +76,43 @@ export function isSyncActive(
  * source of truth for both the settings status label and the runtime
  * `reevaluateProtection` gate, so the label never shows a danger color when
  * protection is genuinely on.
+ *
+ * This is the **runtime guard** (fail-closed via `isSyncActive`'s default
+ * `fallback = true`) and must stay that way to avoid Sync data-loss. The
+ * user-facing status label uses {@link syncProtectionStatus} instead, which
+ * detects Sync truthfully (`fallback = false`) so it never claims Sync is
+ * active when it is not.
  */
 export function isSyncProtectionActive(context: UnhidePlugin): boolean {
   return context.settings.value.protectSync && isSyncActive(context);
+}
+
+/**
+ * Computes the user-facing Sync-protection status label for the settings UI.
+ *
+ * Unlike {@link isSyncProtectionActive} (the fail-closed runtime guard), this
+ * reports Sync truthfully: it first checks whether Sync is actually active with
+ * `fallback = false`, then only considers the `protectSync` setting when Sync is
+ * active. This avoids the misleading "Sync active, protection OFF, deletions will
+ * sync" message when Sync is not enabled or active — turning protection off then
+ * correctly shows the idle "Sync not detected or enabled" state instead.
+ */
+export function syncProtectionStatus(
+  context: UnhidePlugin,
+): Readonly<{ key: string; cls: string }> {
+  if (!isSyncActive(context, false)) {
+    return {
+      key: "settings.protect-sync-status-not-detected",
+      cls: DOMClasses2.STATUS_UNKNOWN,
+    };
+  }
+  return context.settings.value.protectSync
+    ? {
+        key: "settings.protect-sync-status-protected",
+        cls: DOMClasses2.STATUS_PROTECTED,
+      }
+    : {
+        key: "settings.protect-sync-status-unprotected",
+        cls: DOMClasses2.STATUS_UNPROTECTED,
+      };
 }
