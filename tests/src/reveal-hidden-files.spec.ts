@@ -2,12 +2,12 @@
  * Unit tests for the Sync-safe guard (GH#35 (obsidian-unhide)).
  *
  * `hideFile`/`showFile`/`isSyncActive`/`reevaluateProtection` are driven through a fake `context`
- * shaped like `UnhidePlugin`: `app.internalPlugins.plugins.sync.instance.getStatus()` reports the Sync
- * connection status, and `settings.value.protectSync` toggles the guard. The adapter is a fake whose
- * `reconcileDeletion` is a spy and `getRealPath` is identity. `revealPrivateFilter`/
+ * shaped like `UnhidePlugin`: `app.internalPlugins.getPluginById("sync")?.instance.getStatus()` reports
+ * the Sync connection status, and `settings.value.protectSync` toggles the guard. The adapter is a
+ * fake whose `reconcileDeletion` is a spy and `getRealPath` is identity. `revealPrivateFilter`/
  * `revealPrivateAsyncFilter` are mocked (see top of file) to forward the private member into the
- * callback, so `hideFile` reaches `adapter.reconcileDeletion` and `isSyncActive` reads the sync
- * plugin status. `notice` is mocked so we can assert the transition warning.
+ * callback, so `hideFile` reaches `adapter.reconcileDeletion`. `notice` is mocked so we can assert
+ * the transition warning.
  *
  * `protectedHiddenPaths` and `lastProtectionActive` are module-scope state shared across calls and
  * tests. Because `lastProtectionActive` is module-scope, each test resets it by re-importing the
@@ -50,22 +50,39 @@ vi.mock("@polyipseity/obsidian-plugin-library", async (importOriginal) => {
   return mock;
 });
 
+vi.mock("monkey-around", () => ({
+  around: vi.fn(() => vi.fn()),
+}));
+
 describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))", () => {
   const PATH = ".hidden/file.md";
   const PATH2 = ".hidden/other.md";
 
+  interface FakeSyncPlugin {
+    instance: {
+      getStatus: () => $SyncPluginInstance.Status;
+      on: ReturnType<typeof vi.fn>;
+      off: ReturnType<typeof vi.fn>;
+    };
+  }
   interface FakeContext {
     app: {
       internalPlugins: {
-        plugins: {
-          sync?: { instance: { getStatus: () => $SyncPluginInstance.Status } };
-        };
+        getPluginById: (id: string) => FakeSyncPlugin | null;
       };
       vault: { adapter: FakeAdapter };
+      workspace: { onLayoutReady: (cb: () => void) => void };
     };
-    settings: { value: { protectSync: boolean; errorNoticeTimeout: number } };
+    settings: {
+      value: { protectSync: boolean; errorNoticeTimeout: number };
+      onMutate: (
+        accessor: (setting: { protectSync: boolean }) => unknown,
+        cb: () => unknown,
+      ) => unknown;
+    };
     language: { value: { t: (key: string) => string } };
-    register: () => void;
+    register: (cb: () => void) => void;
+    registered: Array<() => void>;
   }
   interface FakeAdapter {
     reconcileDeletion: ReturnType<typeof vi.fn>;
@@ -82,20 +99,35 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
       reconcileFileInternal: vi.fn(),
       getRealPath: (path: string): string => path,
     };
+    const sync: FakeSyncPlugin | null =
+      syncStatus === undefined
+        ? null
+        : {
+            instance: {
+              getStatus: () => syncStatus,
+              on: vi.fn(),
+              off: vi.fn(),
+            },
+          };
+    const registered: Array<() => void> = [];
     return {
       app: {
         internalPlugins: {
-          plugins: {
-            ...(syncStatus === undefined
-              ? {}
-              : { sync: { instance: { getStatus: () => syncStatus } } }),
-          },
+          getPluginById: (id: string): FakeSyncPlugin | null =>
+            id === "sync" ? sync : null,
         },
         vault: { adapter },
+        workspace: { onLayoutReady: () => undefined },
       },
-      settings: { value: { protectSync, errorNoticeTimeout: 0 } },
+      settings: {
+        value: { protectSync, errorNoticeTimeout: 0 },
+        onMutate: () => () => undefined,
+      },
       language: { value: { t: (key: string): string => key } },
-      register: vi.fn(),
+      register: (cb: () => void): void => {
+        registered.push(cb);
+      },
+      registered,
     };
   }
 
@@ -212,7 +244,7 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
 
   it("isSyncActive fails closed (true) when the private API throws", async () => {
     const context = makeContext(true, "synced");
-    const sync = context.app.internalPlugins.plugins.sync;
+    const sync = context.app.internalPlugins.getPluginById("sync");
     if (sync) {
       sync.instance.getStatus = () => {
         throw new Error("private changed");
@@ -222,50 +254,46 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     expect(isSyncActive(context as never)).toBe(true);
   });
 
-  it("isSyncDetected returns false when the sync plugin is absent", async () => {
+  it("isSyncActive fails open (false) when Sync plugin is absent and fallback is false", async () => {
     const context = makeContext(true);
-    const { isSyncDetected } = await import("../../src/utils.js");
-    expect(isSyncDetected(context as never)).toBe(false);
+    const { isSyncActive } = await import("../../src/utils.js");
+    expect(isSyncActive(context as never, false)).toBe(false);
   });
 
-  it("isSyncDetected returns false when the private API throws", async () => {
+  it("isSyncActive fails closed (true) when Sync plugin is absent and fallback is true", async () => {
+    const context = makeContext(true);
+    const { isSyncActive } = await import("../../src/utils.js");
+    expect(isSyncActive(context as never, true)).toBe(true);
+  });
+
+  it("isSyncActive fails open (false) when the private API throws and fallback is false", async () => {
     const context = makeContext(true, "synced");
-    const sync = context.app.internalPlugins.plugins.sync;
+    const sync = context.app.internalPlugins.getPluginById("sync");
     if (sync) {
       sync.instance.getStatus = () => {
         throw new Error("private changed");
       };
     }
-    const { isSyncDetected } = await import("../../src/utils.js");
-    expect(isSyncDetected(context as never)).toBe(false);
+    const { isSyncActive } = await import("../../src/utils.js");
+    expect(isSyncActive(context as never, false)).toBe(false);
   });
 
-  it("isSyncDetected returns true when Sync is active", async () => {
-    const context = makeContext(true, "synced");
-    const { isSyncDetected } = await import("../../src/utils.js");
-    expect(isSyncDetected(context as never)).toBe(true);
-  });
-
-  it("isSyncDetected returns false when Sync is not active", async () => {
-    const context = makeContext(true, "disconnected");
-    const { isSyncDetected } = await import("../../src/utils.js");
-    expect(isSyncDetected(context as never)).toBe(false);
-  });
-
-  it("isProtectionActive is true only when protectSync is ON and Sync active", async () => {
-    const { isProtectionActive } = await import("../../src/utils.js");
-    expect(isProtectionActive(makeContext(true, "synced") as never)).toBe(true);
-    expect(isProtectionActive(makeContext(false, "synced") as never)).toBe(
+  it("isSyncProtectionActive is true only when protectSync is ON and Sync active", async () => {
+    const { isSyncProtectionActive } = await import("../../src/utils.js");
+    expect(isSyncProtectionActive(makeContext(true, "synced") as never)).toBe(
+      true,
+    );
+    expect(isSyncProtectionActive(makeContext(false, "synced") as never)).toBe(
       false,
     );
-    expect(isProtectionActive(makeContext(true, "disconnected") as never)).toBe(
-      false,
-    );
+    expect(
+      isSyncProtectionActive(makeContext(true, "disconnected") as never),
+    ).toBe(false);
   });
 
-  it("isProtectionActive fails closed (true) when Sync plugin is absent", async () => {
-    const { isProtectionActive } = await import("../../src/utils.js");
-    expect(isProtectionActive(makeContext(true) as never)).toBe(true);
+  it("isSyncProtectionActive fails closed (true) when Sync plugin is absent", async () => {
+    const { isSyncProtectionActive } = await import("../../src/utils.js");
+    expect(isSyncProtectionActive(makeContext(true) as never)).toBe(true);
   });
 
   it("warns on the active->inactive transition while Sync is active", async () => {
@@ -294,5 +322,51 @@ describe("src/reveal-hidden-files.ts Sync-safe guard (GH#35 (obsidian-unhide))",
     // Sync disconnected on deactivation: no second warning.
     reevaluateProtection(makeContext(false, "disconnected") as never);
     expect(notice).toHaveBeenCalledTimes(1);
+  });
+
+  it("subscribes to Sync status-change and re-evaluates protection on fire", async () => {
+    const { loadRevealHiddenFiles } =
+      await import("../../src/reveal-hidden-files.js");
+    const context = makeContext(true, "synced");
+    const sync = context.app.internalPlugins.getPluginById("sync");
+    expect(sync).not.toBeNull();
+    if (sync === null) {
+      throw new Error("expected sync plugin to be present");
+    }
+    const on = sync.instance.on;
+    const off = sync.instance.off;
+    // `loadRevealHiddenFiles` -> `patchVault` wires the status-change handler.
+    loadRevealHiddenFiles(
+      context as never,
+      {
+        test: () => true,
+        onChanged: {
+          listen: () => {
+            return (): void => undefined;
+          },
+          emit: async (): Promise<void> => {
+            return undefined;
+          },
+        },
+      } as never,
+    );
+    expect(on).toHaveBeenCalledExactlyOnceWith(
+      "status-change",
+      expect.any(Function),
+    );
+    // Fire the handler: protection re-evaluation runs (no throw).
+    const firstCall = on.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error("expected status-change handler to be registered");
+    }
+    const handler = firstCall[1] as () => void;
+    expect(() => {
+      handler();
+    }).not.toThrow();
+    // Unregistering the plugin context detaches the handler.
+    context.registered.forEach((cb) => {
+      cb();
+    });
+    expect(off).toHaveBeenCalledExactlyOnceWith("status-change", handler);
   });
 });
