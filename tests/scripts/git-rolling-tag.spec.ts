@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Unit spec for scripts/git-rolling-tag.mjs — the single rolling-tag hook
+// Unit spec for scripts/git-rolling-tag.mjs: the single rolling-tag hook
 // script. Covers the exported helpers (default-branch detection, create-on-
 // demand tag updates, force-push, refspec configuration) and the `config` /
 // `create` / `push` CLI actions run by the post-checkout, post-merge,

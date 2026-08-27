@@ -6,7 +6,7 @@ import path from "node:path";
 import * as v from "valibot";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Integration tests for scripts/build.mjs — uses mocked esbuild
+// Integration tests for scripts/build.mjs: uses mocked esbuild
 // to verify top-level behaviour such as writing a metafile and
 // calling watch in dev mode.
 

@@ -50,7 +50,7 @@ function expectSortedKeys(raw: string): void {
 }
 
 // Integration tests for scripts/version.mjs (mirrors top-level behaviour)
-// See AGENTS.md (Testing section) — this is an integration test and uses
+// See AGENTS.md (Testing section): this is an integration test and uses
 // jest-like isolation by resetting modules and providing mocks.
 
 async function writePackageAndVersions(project: string, packageContents = {}) {

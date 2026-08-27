@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 const execFile = promisify(execFileCb);
 
 // Integration test for scripts/obsidian-install.mjs
-// See AGENTS.md (Testing section) — this is an integration test and
+// See AGENTS.md (Testing section): this is an integration test and
 // mirrors the behavior of the runtime script using temporary dirs.
 
 async function setupProject(tmp: string): Promise<void> {

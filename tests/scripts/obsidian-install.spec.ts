@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Unit spec for scripts/obsidian-install.mjs — assert concise error output
+// Unit spec for scripts/obsidian-install.mjs: assert concise error output
 // when the manifest cannot be read. Uses module mocking and process.exit
 // interception to keep the test hermetic and fast.
 

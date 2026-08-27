@@ -4,7 +4,7 @@ import path from "node:path";
 import * as v from "valibot";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Unit spec for scripts/utils.mjs — prefer hermetic behavior and keep tests
+// Unit spec for scripts/utils.mjs: prefer hermetic behavior and keep tests
 // deterministic. Some tests spawn the current runtime (process.execPath) to
 // exercise `execute` but the module is imported per-test to keep state isolated.
 
