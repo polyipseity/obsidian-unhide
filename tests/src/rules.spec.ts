@@ -1,5 +1,5 @@
 /**
- * Unit tests for `src/rules.ts` — assert `loadRules` returns a `ShowingRules`
+ * Unit tests for `src/rules.ts`: assert `loadRules` returns a `ShowingRules`
  * instance wired to the plugin context.
  *
  * `ShowingRules` extends `SettingRules` and, in its constructor, registers

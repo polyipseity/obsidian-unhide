@@ -1,5 +1,5 @@
 /**
- * Unit tests for `src/settings-data.ts` — validate defaults and normalization helpers.
+ * Unit tests for `src/settings-data.ts`: validate defaults and normalization helpers.
  */
 import { describe, expect, it, vi } from "vitest";
 import { LocalSettings, Settings } from "../../src/settings-data.js";

@@ -9,8 +9,8 @@
  * - `DOCUMENTATIONS.donate()` falls back to the deprecated `renderInstalledPlugin`
  *   path when the primary path finds no matching row (older Obsidian versions).
  * - `DOCUMENTATIONS.donate()` falls back to opening the donation URL (and does
- *   not throw) when both paths fail — regression for Obsidian 1.12.7 private
- *   API change.
+ *   not throw) when both paths fail. This is a regression guard for the
+ *   Obsidian 1.12.7 private API change.
  * - `DOCUMENTATIONS.donate()` warns twice when both the listEl path and the
  *   deprecated renderInstalledPlugin path find no element, then opens the URL.
  *
@@ -23,7 +23,7 @@
  * `activeSelf` is stubbed to return `self` unconditionally: the real
  * implementation accepts `Element | UIEvent | null` but production code
  * passes a `Document` (from `containerEl.ownerDocument`), which jsdom does
- * not support — the stub keeps tests hermetic without coupling them to the
+ * not support. The stub keeps tests hermetic without coupling them to the
  * activeSelf internals.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -79,7 +79,7 @@ function makePluginRow(pluginName: string): {
 
 // A donate `view` whose `installedPlugins.listEl` is empty (no matching row),
 // so donate() falls through to the deprecated `renderInstalledPlugin` path,
-// which always throws — simulating Obsidian 1.12.7's changed private API.
+// which always throws, simulating Obsidian 1.12.7's changed private API.
 function brokenDonateView(
   donationUrl: string | Record<string, string> | undefined,
 ): Parameters<typeof DOCUMENTATIONS.donate>[0] {
@@ -212,7 +212,7 @@ describe("src/documentations.ts", () => {
       expect(openExternalSpy.mock.calls[0]?.[1]).toBe(
         "https://example.com/donate-a",
       );
-      // The primary listEl path found no element — one app warning, then the
+      // The primary listEl path found no element. One app warning, then the
       // deprecated fallback threw and revealPrivateFilter emitted its own catch
       // warning before the fallback opened the donation URL.
       expect(warnSpy).toHaveBeenCalledTimes(2);
@@ -246,7 +246,7 @@ describe("src/documentations.ts", () => {
         .spyOn(self.console, "warn")
         .mockImplementation(() => {});
 
-      // renderInstalledPlugin renders a node with no heart icon — unlike the
+      // renderInstalledPlugin renders a node with no heart icon. Unlike the
       // brokenDonateView helper it does not throw, so donate() reaches the
       // second warning and the inner throw before the revealPrivateFilter fallback.
       const communityPluginsTab = {
@@ -275,7 +275,7 @@ describe("src/documentations.ts", () => {
       // fails. Third warn: revealPrivateFilter's catch warning.
       expect(warnSpy).toHaveBeenCalledTimes(3);
       // Both warnings are JSON-serialized unmatched elements: the empty `<ul>`
-      // and the rendered div containing only a `<span>` — both serialize to {}.
+      // and the rendered div containing only a `<span>`. Both serialize to {}.
       expect(JSON.parse(String(warnSpy.mock.calls[0]?.[0]))).toEqual({});
       expect(JSON.parse(String(warnSpy.mock.calls[1]?.[0]))).toEqual({});
       expect(openExternalSpy).toHaveBeenCalledTimes(1);

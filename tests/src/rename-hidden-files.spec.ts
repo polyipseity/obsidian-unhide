@@ -1,5 +1,5 @@
 /**
- * Unit tests for `src/rename-hidden-files.ts` — assert the file-explorer rename-method
+ * Unit tests for `src/rename-hidden-files.ts`: assert the file-explorer rename-method
  * detection order (`saveRename` ≥1.13.7 → `acceptRename` ≤1.12.7 → `finishRename` ancient).
  *
  * `patchFileExplorer` is not exported, so we drive it through its public surface: mock

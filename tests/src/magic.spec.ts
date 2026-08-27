@@ -1,5 +1,5 @@
 /**
- * Small unit tests for `src/magic.ts` constants — ensure exported constants are sane.
+ * Small unit tests for `src/magic.ts` constants: assert exported constants are sane.
  */
 import { describe, it, expect } from "vitest";
 import { PLUGIN_UNLOAD_DELAY, DOMClasses2 } from "../../src/magic.js";
