@@ -7,8 +7,8 @@
  * keys should exist in all other translations so that translators have a
  * reference file.  This script walks the English tree, copies values over to
  * each other language (overwriting existing entries) and then writes the
- * result back to disk sorted by key.  Sorting makes git diffs meaningful and
- * keeps locale files easy to scan manually.
+ * result back to disk sorted by key.  Sorting keeps git diffs small and the
+ * files easy to scan.
  *
  * This file is a standalone ES module (`.mjs`) so that the project can simply
  * execute it with `node scripts/sync-locale-keys.mjs` regardless of the
@@ -22,13 +22,13 @@
  *
  * It uses only the built‑in `fs` and `path` modules plus the shared helpers in
  * `utils.mjs`; invisible and control characters are escaped as `\uXXXX` on
- * save. It deliberately avoids mutating the English file and ignores
- * directories that lack a `translation.json`.
+ * save. It does not touch the English file and skips directories that lack a
+ * `translation.json`.
  *
  * This script is intended to be run manually (or via a bun script) whenever
  * translation keys are added or modified.  It is *not* run as part of the
  * build pipeline, but keeping it in `scripts/` and referenced in the repo
- * documentation makes it a formal part of our workflow.
+ * documentation keeps it part of the workflow.
  */
 
 import fs from "node:fs/promises";

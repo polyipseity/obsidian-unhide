@@ -81,8 +81,8 @@ const INVISIBLE_PATTERN =
 
 /**
  * Replace invisible and control characters with `\uXXXX` escapes so that
- * saved JSON stays diff-friendly and tool-safe. The pattern excludes all
- * ASCII, so the structural whitespace of pretty-printed JSON is untouched.
+ * saved JSON stays clean in diffs and safe for tooling. The pattern excludes
+ * all ASCII, so the structural whitespace of pretty-printed JSON is untouched.
  *
  * @param {string} text
  * @returns {string}
