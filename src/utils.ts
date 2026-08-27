@@ -72,16 +72,14 @@ export function isSyncActive(
  * Reports whether Sync-safe protection is currently active for the vault.
  *
  * Protection is active only when the `protectSync` setting is ON and Sync is
- * actually active (fail-closed via {@link isSyncActive}). This is the single
- * source of truth for both the settings status label and the runtime
- * `reevaluateProtection` gate, so the label never shows a danger color when
- * protection is genuinely on.
+ * actually active (fail-closed via {@link isSyncActive}). Both the settings
+ * status label and the runtime `reevaluateProtection` gate read this.
  *
  * This is the **runtime guard** (fail-closed via `isSyncActive`'s default
- * `fallback = true`) and must stay that way to avoid Sync data-loss. The
- * user-facing status label uses {@link syncProtectionStatus} instead, which
- * detects Sync truthfully (`fallback = false`) so it never claims Sync is
- * active when it is not.
+ * `fallback = true`); keeping it fail-closed prevents Sync data-loss. The
+ * user-facing status label uses {@link syncProtectionStatus}, which detects
+ * Sync truthfully (`fallback = false`) and never claims Sync is active when it
+ * is not.
  */
 export function isSyncProtectionActive(context: UnhidePlugin): boolean {
   return context.settings.value.protectSync && isSyncActive(context);
@@ -94,8 +92,8 @@ export function isSyncProtectionActive(context: UnhidePlugin): boolean {
  * reports Sync truthfully: it first checks whether Sync is actually active with
  * `fallback = false`, then only considers the `protectSync` setting when Sync is
  * active. This avoids the misleading "Sync active, protection OFF, deletions will
- * sync" message when Sync is not enabled or active — turning protection off then
- * correctly shows the idle "Sync not detected or enabled" state instead.
+ * sync" message when Sync is not enabled or active. With protection off, the
+ * vault shows the idle "Sync not detected or enabled" state.
  */
 export function syncProtectionStatus(
   context: UnhidePlugin,
