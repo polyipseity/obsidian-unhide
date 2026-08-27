@@ -66,6 +66,10 @@ This file is automatically opened on first install. You can reopen it in setting
 - Please also enable `Files & links > Detect all file extensions` for the plugin to work properly.
 - Other plugins will treat visible hidden files as normal files. This may cause issues such as treating plugin JavaScript files as user scripts. To resolve such issues, exclude those hidden files in the other plugins' settings or hide those hidden files in this plugin's settings.
 
+### Use cases
+
+- The plugin reveals dot-directories such as Obsidian's `.assets` and Nextcloud Notes' `.attachments*` by default (only `.git` and `.venv` are excluded). When the vault base is synced with Nextcloud, this lets embedded images display in both Obsidian and Nextcloud Notes. Keep `Files & links > Detect all file extensions` enabled (see above) for this to work.
+
 ## Contributing
 
 Contributions are welcome!
