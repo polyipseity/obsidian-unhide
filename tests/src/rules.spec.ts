@@ -8,6 +8,7 @@
  * the private member (`vault`) into the callback, letting the constructor run
  * against a fake `UnhidePlugin` context without a real Obsidian app.
  */
+import { Rules } from "@polyipseity/obsidian-plugin-library";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@polyipseity/obsidian-plugin-library", async (importOriginal) => {
@@ -82,5 +83,24 @@ describe("src/rules.ts", () => {
     // `showConfigurationFolder` is true.
     expect(rules.test(".obsidian")).toBe(true);
     expect(rules.test(".hidden/file.md")).toBe(true);
+  });
+});
+
+describe("default showingRules reveal attachment dot-dirs", () => {
+  const rules = Rules.parse(
+    ["+/", "-/\\.git(?:\\/|$)/u", "-/\\.venv(?:\\/|$)/u"],
+    Rules.pathInterpreter,
+  );
+  it("reveals .assets", () => {
+    expect(Rules.test(rules, ".assets")).toBe(true);
+  });
+  it("reveals .attachments.154358", () => {
+    expect(Rules.test(rules, ".attachments.154358")).toBe(true);
+  });
+  it("excludes .git", () => {
+    expect(Rules.test(rules, ".git")).toBe(false);
+  });
+  it("excludes .venv", () => {
+    expect(Rules.test(rules, ".venv")).toBe(false);
   });
 });
