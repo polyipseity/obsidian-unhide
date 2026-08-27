@@ -1,5 +1,16 @@
 # obsidian-unhide <!-- markdownlint-disable-file MD024 -->
 
+## 3.1.0
+
+### Minor Changes
+
+- fbc3543: Add a `protectSync` setting (default ON) that prevents data loss in synced vaults. When enabled and Obsidian Sync is detected, hiding a file is deferred so the destructive `DataAdapter.reconcileDeletion` calls are skipped, avoiding deletions that Obsidian Sync would propagate to other devices ([GH#35](https://github.com/polyipseity/obsidian-unhide/issues/35)). The deferred paths are flushed when protection turns off, and a notice appears when protection activates. The README documents the sync/data-loss risk and the best-effort nature of this protection: detection-based and not a guarantee.
+
+### Patch Changes
+
+- d0a8742: Document the Nextcloud ↔ Obsidian embedded-image recipe in the README and add a test asserting the default `showingRules` reveal attachment dot-directories (`.assets`, `.attachments*`). ([GH#32](https://github.com/polyipseity/obsidian-unhide/issues/32))
+- 07c7efc: Fix `DataAdapter.reconcileDeletion` private typing to document the optional `force` parameter; verify plugin usage is semantically correct against Obsidian 1.13.7.
+
 ## 3.0.0
 
 ### Major Changes
